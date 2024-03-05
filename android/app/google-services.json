@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "326884342703",
+    "project_id": "coredreamsinnovationtask",
+    "storage_bucket": "coredreamsinnovationtask.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326884342703:android:2a3f88f431cdb32e3dcd5a",
+        "android_client_info": {
+          "package_name": "com.example.core_dreams_innovations"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAi4ZGQmy3sVXVUjyVoSNMoOCsHmEjpodE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
