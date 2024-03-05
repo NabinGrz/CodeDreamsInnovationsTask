@@ -20,9 +20,8 @@ class FirebaseAuthHelper {
   //   await user?.updatePhotoURL(photoUrl);
   // }
 
-  Future<Either<UserCredential?, String?>> login(
+  Future<Either<UserCredential?, String?>> verifyPhoneNumber(
       {required String phoneNumber,
-      // required String verificationCode,
       required void Function(String, int?) codeSent}) async {
     UserCredential? userCredentials;
     try {

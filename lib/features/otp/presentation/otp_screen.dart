@@ -3,25 +3,56 @@ import 'package:core_dreams_innovations/core/constants/app_styles.dart';
 import 'package:core_dreams_innovations/core/constants/text_styles.dart';
 import 'package:core_dreams_innovations/core/dependency_injection/injector.dart';
 import 'package:core_dreams_innovations/core/helper/firebase_auth_helper.dart';
+import 'package:core_dreams_innovations/features/home/presentation/home.dart';
+import 'package:core_dreams_innovations/features/otp/domain/entities/auth_state.dart';
+import 'package:core_dreams_innovations/features/otp/provider/otp_provider.dart';
 import 'package:core_dreams_innovations/shared/widgets/sizebox.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
-class OTPScreen extends StatefulWidget {
+import 'widgets/login_failed_dialog.dart';
+
+class OTPScreen extends ConsumerStatefulWidget {
   final String verificationId;
-  const OTPScreen({super.key, required this.verificationId});
+  const OTPScreen(this.verificationId, {super.key});
 
   @override
-  State<OTPScreen> createState() => _OTPScreenState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _OTPScreenState();
 }
 
-class _OTPScreenState extends State<OTPScreen> {
+class _OTPScreenState extends ConsumerState<OTPScreen> {
   final otpController = TextEditingController();
+  void listenToProvider() {
+    ref.listen(otpProvider.select((value) => value), (previous, next) {
+      if (next.type == AuthStateType.failure) {
+        showDialog(
+          context: context,
+          builder: (context) => LoginFailedDialog(
+            message: next.failedAppStateResponse ?? "",
+            onPressed: () {
+              Navigator.pop(context);
+              otpController.clear();
+            },
+          ),
+        );
+      } else if (next.type == AuthStateType.success) {
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const Home(),
+            ),
+            (route) => false);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    listenToProvider();
     return Scaffold(
       backgroundColor: AppColors.primary,
       appBar: AppBar(
@@ -32,15 +63,16 @@ class _OTPScreenState extends State<OTPScreen> {
         ),
         actions: [
           TextButton(
+              autofocus: true,
               onPressed: () async {
                 if (otpController.text.isNotEmpty) {
-                  final helper = getIt<FirebaseAuthHelper>();
-                  PhoneAuthCredential credential = PhoneAuthProvider.credential(
-                    verificationId: widget.verificationId,
-                    smsCode: otpController.text,
-                  );
-                  final user = await helper.firebaseAuth
-                      .signInWithCredential(credential);
+                  await ref
+                      .read(otpProvider.notifier)
+                      .verifyOTP(widget.verificationId, otpController.text);
+                } else {
+                  ref
+                      .read(otpValidationProvider.notifier)
+                      .update((state) => "Please enter your OTP");
                 }
               },
               child: Text(
@@ -76,6 +108,13 @@ class _OTPScreenState extends State<OTPScreen> {
                 fontSize: 20.sp,
                 color: Colors.white,
               ),
+              onChanged: (value) {
+                if (ref.watch(otpValidationProvider) != null) {
+                  ref
+                      .read(otpValidationProvider.notifier)
+                      .update((state) => null);
+                }
+              },
               keyboardType: TextInputType.number,
               pinTheme: PinTheme(
                 disabledColor: Colors.amber,
@@ -84,41 +123,17 @@ class _OTPScreenState extends State<OTPScreen> {
                 inactiveColor: Colors.white,
                 selectedColor: Colors.white,
               ),
-            )
-            // Container(
-            //   decoration: BoxDecoration(
-            //     color: AppColors.backgroundGreyColor,
-            //     borderRadius: BorderRadius.circular(18.r),
-            //   ),
-            //   padding: EdgeInsets.only(left: screenMargin + 10),
-            //   child: Row(
-            //     children: [
-            //       Image.asset(
-            //         "assets/images/america.png",
-            //         height: 40.w,
-            //         width: 40.w,
-            //       ),
-            //       sizedBox(18),
-            //       Flexible(
-            //         child: TextFormField(
-            //           style: light().copyWith(
-            //             fontSize: 20.sp,
-            //             color: Colors.white,
-            //           ),
-            //           decoration: InputDecoration(
-            //               hintText: "Phone Number",
-            //               hintStyle: light().copyWith(
-            //                 fontSize: 20.sp,
-            //                 color: AppColors.textGreyColor,
-            //               ),
-            //               border: OutlineInputBorder(
-            //                   borderRadius: BorderRadius.circular(18.r),
-            //                   borderSide: BorderSide.none)),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // )
+            ),
+            if (ref.watch(otpValidationProvider) != null) ...{
+              sizedBox(8),
+              Text(
+                "${ref.watch(otpValidationProvider)}",
+                style: light().copyWith(
+                  fontSize: 16.sp,
+                  color: Colors.red,
+                ),
+              ),
+            },
           ],
         ),
       ),

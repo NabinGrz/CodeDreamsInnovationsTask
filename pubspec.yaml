@@ -43,6 +43,7 @@ dependencies:
   flutter_screenutil: ^5.9.0
   pin_code_fields: ^8.0.1
   get_it: ^7.6.7
+  hooks_riverpod: ^2.4.10
 
 dev_dependencies:
   flutter_test:
