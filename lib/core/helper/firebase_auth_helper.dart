@@ -24,6 +24,7 @@ class FirebaseAuthHelper {
       {required String phoneNumber,
       required void Function(String, int?) codeSent}) async {
     UserCredential? userCredentials;
+    await _firebaseAuth.setSettings(appVerificationDisabledForTesting: true);
     try {
       await _firebaseAuth.verifyPhoneNumber(
         phoneNumber: "+977$phoneNumber",

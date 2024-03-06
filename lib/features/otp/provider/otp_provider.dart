@@ -1,6 +1,5 @@
 import 'package:core_dreams_innovations/features/otp/domain/entities/auth_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../core/helper/firebase_auth_helper.dart';

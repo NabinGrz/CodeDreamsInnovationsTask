@@ -1,16 +1,12 @@
 import 'package:core_dreams_innovations/core/constants/app_colors.dart';
 import 'package:core_dreams_innovations/core/constants/app_styles.dart';
 import 'package:core_dreams_innovations/core/constants/text_styles.dart';
-import 'package:core_dreams_innovations/features/otp/presentation/otp_screen.dart';
 import 'package:core_dreams_innovations/features/phone_number/provider/phone_number_provider.dart';
 import 'package:core_dreams_innovations/shared/widgets/sizebox.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../core/dependency_injection/injector.dart';
-import '../../../core/helper/firebase_auth_helper.dart';
 
 class PhoneNumberScreen extends ConsumerStatefulWidget {
   const PhoneNumberScreen({super.key});

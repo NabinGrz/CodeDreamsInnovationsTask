@@ -1,15 +1,11 @@
 import 'package:core_dreams_innovations/core/constants/app_colors.dart';
 import 'package:core_dreams_innovations/core/constants/app_styles.dart';
 import 'package:core_dreams_innovations/core/constants/text_styles.dart';
-import 'package:core_dreams_innovations/core/dependency_injection/injector.dart';
-import 'package:core_dreams_innovations/core/helper/firebase_auth_helper.dart';
 import 'package:core_dreams_innovations/features/home/presentation/home.dart';
 import 'package:core_dreams_innovations/features/otp/domain/entities/auth_state.dart';
 import 'package:core_dreams_innovations/features/otp/provider/otp_provider.dart';
 import 'package:core_dreams_innovations/shared/widgets/sizebox.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';

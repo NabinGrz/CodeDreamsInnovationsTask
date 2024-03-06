@@ -18,7 +18,7 @@ class PhoneNumberNotifier extends ChangeNotifier {
   bool isLoading = false;
   Future<void> verifyPhoneNumber(String number, BuildContext context) async {
     isLoading = true;
-    print(isLoading);
+
     await auth
         .verifyPhoneNumber(
           phoneNumber: number,
