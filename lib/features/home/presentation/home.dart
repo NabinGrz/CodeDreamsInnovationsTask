@@ -2,12 +2,15 @@ import 'package:core_dreams_innovations/core/constants/app_colors.dart';
 import 'package:core_dreams_innovations/core/constants/app_styles.dart';
 import 'package:core_dreams_innovations/core/constants/text_styles.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/location_provider.dart';
+import 'package:core_dreams_innovations/features/home/widget/content.dart';
 import 'package:core_dreams_innovations/shared/widgets/sizebox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+import '../widget/header.dart';
 
 class Home extends ConsumerStatefulWidget {
   const Home({super.key});
@@ -78,7 +81,7 @@ class _HomeState extends ConsumerState<Home> {
                   },
                   child: DraggableScrollableSheet(
                     initialChildSize: 0.3,
-                    maxChildSize: 0.95,
+                    maxChildSize: 1,
                     minChildSize: 0.3,
                     expand: true,
                     snap: true,
@@ -88,10 +91,12 @@ class _HomeState extends ConsumerState<Home> {
                       return DecoratedBox(
                         decoration: BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(25.r),
-                            topRight: Radius.circular(25.r),
-                          ),
+                          borderRadius: ref.watch(isExpanded)
+                              ? null
+                              : BorderRadius.only(
+                                  topLeft: Radius.circular(25.r),
+                                  topRight: Radius.circular(25.r),
+                                ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.white.withOpacity(0.43),
@@ -106,86 +111,23 @@ class _HomeState extends ConsumerState<Home> {
                           controller: scrollController,
                           shrinkWrap: true,
                           slivers: [
-                            SliverPadding(
-                              padding: EdgeInsets.all(screenMargin),
-                              sliver: SliverToBoxAdapter(
-                                child: Text(
-                                  'At your service Mr Walker',
-                                  style: bold().copyWith(
-                                    fontSize: 20.sp,
-                                    color: Colors.white,
+                            (ref.watch(isExpanded))
+                                ? const Header()
+                                : SliverPadding(
+                                    padding: EdgeInsets.all(screenMargin),
+                                    sliver: SliverToBoxAdapter(
+                                      child: Text(
+                                        'At your service Mr Walker',
+                                        style: bold().copyWith(
+                                          fontSize: 20.sp,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                            ),
-                            SliverPadding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: screenMargin),
-                              sliver: SliverList.list(
-                                children: [
-                                  if (!ref.watch(isExpanded)) ...{
-                                    InkWell(
-                                      onTap: () =>
-                                          dragController.animateTo(0.95,
-                                              duration: const Duration(
-                                                milliseconds: 300,
-                                              ),
-                                              curve: Curves.easeInOut),
-                                      child: Container(
-                                        height: 60.h,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.backgroundGreyColor,
-                                          borderRadius:
-                                              BorderRadius.circular(12.r),
-                                        ),
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 12.w),
-                                        child: Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.search,
-                                              color: AppColors.yellowColor,
-                                            ),
-                                            sizedBox(10),
-                                            Text(
-                                              "Where do you want to go sir?",
-                                              style: light().copyWith(
-                                                fontSize: 18.sp,
-                                                color: AppColors.textGreyColor,
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                  },
-                                  sizedBox(20),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      item(
-                                        iconData: Icons.home_outlined,
-                                        name: "Home",
-                                      ),
-                                      item(
-                                        iconData:
-                                            Icons.local_post_office_outlined,
-                                        name: "Office",
-                                      ),
-                                      item(
-                                        iconData:
-                                            Icons.airplane_ticket_outlined,
-                                        name: "Airport",
-                                      ),
-                                      item(
-                                        iconData: Icons.add,
-                                        name: "Add",
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
+                            // sizedBox(10),
+                            SliverPadding(padding: EdgeInsets.all(6.h)),
+                            ContenWidget(dragController),
                           ],
                         ),
                       );
@@ -194,28 +136,6 @@ class _HomeState extends ConsumerState<Home> {
                 )
               ],
             ),
-    );
-  }
-
-  Widget item({required String name, required IconData iconData}) {
-    return Container(
-      margin: EdgeInsets.only(right: 18.w),
-      child: Column(
-        children: [
-          Icon(
-            iconData,
-            color: AppColors.yellowColor,
-            size: 32.w,
-          ),
-          Text(
-            name,
-            style: light().copyWith(
-              color: Colors.white,
-              fontSize: 14.sp,
-            ),
-          )
-        ],
-      ),
     );
   }
 }
