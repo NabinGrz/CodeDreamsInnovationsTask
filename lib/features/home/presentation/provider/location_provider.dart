@@ -4,18 +4,21 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../widget/permission_dialog.dart';
 
-final locationProvider =
-    StateNotifierProvider<MapNotifier, LocationState>((ref) => MapNotifier());
+final locationProvider = StateNotifierProvider<LocationNotifier, LocationState>(
+    (ref) => LocationNotifier());
+final isExpanded = StateProvider<bool>((ref) => false);
 
-class MapNotifier extends StateNotifier<LocationState> {
-  MapNotifier() : super(LocationState(isLoading: false));
+class LocationNotifier extends StateNotifier<LocationState> {
+  LocationNotifier() : super(LocationState(isLoading: false));
 
   LocationPermission? _locationPermission;
   Future<void> checkLocationPermission(BuildContext context) async {
+    state = LocationState(isLoading: true);
     _locationPermission = await Geolocator.checkPermission();
     if (_locationPermission == LocationPermission.denied) {
       _requestLocationPermission(context);
     } else if (_locationPermission == LocationPermission.deniedForever) {
+      state = LocationState(isLoading: false);
       showDialog(
         context: context,
         builder: (context) => PermissionDeniedDialog(
@@ -34,6 +37,7 @@ class MapNotifier extends StateNotifier<LocationState> {
     _locationPermission = await Geolocator.requestPermission();
     if (_locationPermission == LocationPermission.denied ||
         _locationPermission == LocationPermission.deniedForever) {
+      state = LocationState(isLoading: false);
       showDialog(
         context: context,
         builder: (context) => PermissionDeniedDialog(
@@ -51,12 +55,12 @@ class MapNotifier extends StateNotifier<LocationState> {
   Future<void> _getCurrentLocation(BuildContext context) async {
     try {
       Position position = await Geolocator.getCurrentPosition();
-
       state = LocationState(
         position: position,
         isLoading: false,
       );
     } catch (e) {
+      state = LocationState(isLoading: false);
       showDialog(
         context: context,
         builder: (context) => PermissionDeniedDialog(
