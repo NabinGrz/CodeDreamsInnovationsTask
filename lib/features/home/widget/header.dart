@@ -6,8 +6,14 @@ import '../../../core/constants/app_styles.dart';
 import '../../../core/constants/text_styles.dart';
 
 class Header extends StatelessWidget {
+  final void Function()? onDone;
+  final void Function()? onCancel;
+  final DraggableScrollableController dragController;
   const Header({
+    required this.dragController,
     super.key,
+    required this.onDone,
+    required this.onCancel,
   });
 
   @override
@@ -22,11 +28,14 @@ class Header extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Cancel',
-              style: regular().copyWith(
-                fontSize: 18.sp,
-                color: Colors.white,
+            InkWell(
+              onTap: onCancel,
+              child: Text(
+                'Cancel',
+                style: regular().copyWith(
+                  fontSize: 18.sp,
+                  color: Colors.white,
+                ),
               ),
             ),
             Text(
@@ -36,11 +45,14 @@ class Header extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            Text(
-              'Done',
-              style: bold().copyWith(
-                fontSize: 18.sp,
-                color: AppColors.yellowColor,
+            InkWell(
+              onTap: onDone,
+              child: Text(
+                'Done',
+                style: bold().copyWith(
+                  fontSize: 18.sp,
+                  color: AppColors.yellowColor,
+                ),
               ),
             ),
           ],

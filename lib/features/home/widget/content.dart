@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -12,15 +13,23 @@ import '../presentation/provider/place_provider.dart';
 
 class ContenWidget extends ConsumerStatefulWidget {
   final DraggableScrollableController dragController;
-  const ContenWidget(this.dragController, {super.key});
+  final TextEditingController startController;
+  final TextEditingController destinationController;
+  const ContenWidget(
+      this.dragController, this.startController, this.destinationController,
+      {super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ContenWidgetState();
 }
 
 class _ContenWidgetState extends ConsumerState<ContenWidget> {
-  final startController = TextEditingController();
-  final destinationController = TextEditingController();
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
   @override
   Widget build(
     BuildContext context,
@@ -31,7 +40,6 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
         children: [
           ref.watch(isExpanded)
               ? Container(
-                  // height: 60.h,
                   decoration: BoxDecoration(
                     color: AppColors.backgroundGreyColor,
                     borderRadius: BorderRadius.circular(12.r),
@@ -45,7 +53,12 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             TextFormField(
-                              controller: startController,
+                              readOnly: true,
+                              controller: widget.startController,
+                              style: regular().copyWith(
+                                fontSize: 20.sp,
+                                color: Colors.white,
+                              ),
                               decoration: InputDecoration(
                                 contentPadding: const EdgeInsets.only(
                                   left: 10,
@@ -64,7 +77,7 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                               height: 1,
                             ),
                             TextFormField(
-                              controller: destinationController,
+                              controller: widget.destinationController,
                               style: regular().copyWith(
                                 fontSize: 20.sp,
                                 color: Colors.white,
@@ -141,63 +154,59 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                     ),
                   ),
                 ),
-          ListView.separated(
-            separatorBuilder: (context, index) {
-              return const Divider(
-                color: AppColors.textGreyColor,
-                height: 6,
-              );
-            },
-            shrinkWrap: true,
-            itemCount: ref.watch(placesProvider).length,
-            itemBuilder: (context, index) {
-              final place = ref.watch(placesProvider)[index];
-              return Container(
-                padding: EdgeInsets.symmetric(
-                  vertical: 10.h,
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      color: Colors.white,
-                      size: 18.w,
+          if (ref.watch(isExpanded)) ...{
+            ListView.separated(
+              separatorBuilder: (context, index) {
+                return const Divider(
+                  color: AppColors.textGreyColor,
+                  height: 6,
+                );
+              },
+              shrinkWrap: true,
+              itemCount: ref.watch(placesProvider).length,
+              itemBuilder: (context, index) {
+                final place = ref.watch(placesProvider)[index];
+                return InkWell(
+                  onTap: () async {
+                    final data = await Repo.placeToLatLng(place.place_id ?? "");
+                    final latlng = LatLng(
+                      data?.geometry?.location?.lat ?? 0,
+                      data?.geometry?.location?.lng ?? 0,
+                    );
+                    ref
+                        .read(destinationProvider.notifier)
+                        .update((state) => latlng);
+                    widget.destinationController.text = place.description ?? "";
+                    ref.read(placesProvider.notifier).update((state) => []);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      vertical: 10.h,
                     ),
-                    sizedBox(10),
-                    Expanded(
-                      child: Text(
-                        "${place.description}",
-                        style: regular().copyWith(
-                          fontSize: 16.sp,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
                           color: Colors.white,
+                          size: 18.w,
                         ),
-                      ),
-                    )
-                  ],
-                ),
-              );
-              // return ListTile(
-              //   leading: const Icon(
-              //     Icons.location_on,
-              //     color: Colors.white,
-              //   ),
-              //   title: Text(
-              //     "Nabin",
-              //     style: regular().copyWith(
-              //       fontSize: 16.sp,
-              //       color: Colors.white,
-              //     ),
-              //   ),
-              // );
-              // return Text(
-              //   "Nabin",
-              //   style: regular().copyWith(
-              //     fontSize: 20.sp,
-              //     color: Colors.white,
-              //   ),
-              // );
-            },
-          ),
+                        sizedBox(10),
+                        Expanded(
+                          child: Text(
+                            "${place.description}",
+                            style: regular().copyWith(
+                              fontSize: 16.sp,
+                              color: Colors.white,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              },
+            )
+          },
           sizedBox(20),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,

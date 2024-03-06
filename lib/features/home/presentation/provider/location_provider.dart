@@ -55,12 +55,13 @@ class LocationNotifier extends StateNotifier<LocationState> {
   Future<void> _getCurrentLocation(BuildContext context) async {
     try {
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.bestForNavigation,
+        desiredAccuracy: LocationAccuracy.best,
       );
       state = LocationState(
         position: position,
         isLoading: false,
       );
+      print("AJKSDHJKASHDJAKS$position");
     } catch (e) {
       state = LocationState(isLoading: false);
       showDialog(
