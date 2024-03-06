@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:core_dreams_innovations/core/constants/app_string.dart';
 import 'package:core_dreams_innovations/features/home/data/models/location_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,18 +29,19 @@ final routesProvider = StateProvider<Polyline>((ref) {
 
   return polyline;
 });
+final googleApiProvider = ChangeNotifierProvider<GoogleMapAPINotifier>(
+    (ref) => GoogleMapAPINotifier());
 
-class Repo {
-  Repo._();
-  static Future<PredictionModel?> placeAutoComplete(
+class GoogleMapAPINotifier extends ChangeNotifier {
+  Future<PredictionModel?> placeAutoComplete(
       {required String placeInput}) async {
     try {
       Map<String, dynamic> querys = {
         'input': placeInput,
-        'key': "AIzaSyAVg6lbPW4C3aLpom1rAXMMkPwUikKUqJM"
+        'key': AppString.apiKey
       };
       final url = Uri.https(
-          "maps.googleapis.com", "maps/api/place/autocomplete/json", querys);
+          AppString.googleApiUrl, "maps/api/place/autocomplete/json", querys);
       final response = await http.get(url);
       if (response.statusCode == 200) {
         return PredictionModel.fromJson(jsonDecode(response.body));
@@ -47,19 +49,19 @@ class Repo {
         response.body;
       }
     } on Exception catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
     }
     return null;
   }
 
-  static Future<LocationModel?> placeToLatLng(String placeId) async {
+  Future<LocationModel?> placeToLatLng(String placeId) async {
     try {
       Map<String, dynamic> querys = {
         'place_id': placeId,
-        'key': "AIzaSyAVg6lbPW4C3aLpom1rAXMMkPwUikKUqJM"
+        'key': AppString.apiKey
       };
       final url =
-          Uri.https("maps.googleapis.com", "maps/api/geocode/json", querys);
+          Uri.https(AppString.googleApiUrl, "maps/api/geocode/json", querys);
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final test = jsonDecode(response.body);
@@ -69,20 +71,19 @@ class Repo {
         response.body;
       }
     } on Exception catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
     }
     return null;
   }
 
-  static Future<LocationModel?> latlngToPlace(String latlng) async {
-    //https://maps.googleapis.com/maps/api/geocode/json?latlng=37.4219983, -122.084&key=AIzaSyAVg6lbPW4C3aLpom1rAXMMkPwUikKUqJM
+  Future<LocationModel?> latlngToPlace(String latlng) async {
     try {
       Map<String, dynamic> querys = {
         'latlng': Uri.encodeFull(latlng),
-        'key': "AIzaSyAVg6lbPW4C3aLpom1rAXMMkPwUikKUqJM"
+        'key': AppString.apiKey
       };
       final url =
-          Uri.https("maps.googleapis.com", "maps/api/geocode/json", querys);
+          Uri.https(AppString.googleApiUrl, "maps/api/geocode/json", querys);
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -93,18 +94,18 @@ class Repo {
         response.body;
       }
     } on Exception catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
     }
     return null;
   }
 
-  static Future<List<PointLatLng>> getRouteBetweenTwoPoints(
+  Future<List<PointLatLng>> getRouteBetweenTwoPoints(
       {required LatLng start,
       required LatLng end,
       required Color color}) async {
     PolylinePoints polylinePoints = PolylinePoints();
     PolylineResult res = await polylinePoints.getRouteBetweenCoordinates(
-        "AIzaSyAVg6lbPW4C3aLpom1rAXMMkPwUikKUqJM",
+        AppString.apiKey,
         PointLatLng(start.latitude, start.longitude),
         PointLatLng(end.latitude, end.longitude));
     if (res.points.isNotEmpty) {
@@ -114,7 +115,7 @@ class Repo {
     }
   }
 
-  static Future<void> updateCameraLocationToZoomBetweenTwoMarkers(
+  Future<void> updateCameraLocationToZoomBetweenTwoMarkers(
     LatLng source,
     LatLng destination,
     GoogleMapController mapController,
@@ -139,15 +140,15 @@ class Repo {
     CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 120);
     return checkCameraLocation(cameraUpdate, mapController);
   }
-}
 
-Future<void> checkCameraLocation(
-    CameraUpdate cameraUpdate, GoogleMapController mapController) async {
-  await mapController.animateCamera(cameraUpdate);
-  LatLngBounds l1 = await mapController.getVisibleRegion();
-  LatLngBounds l2 = await mapController.getVisibleRegion();
+  Future<void> checkCameraLocation(
+      CameraUpdate cameraUpdate, GoogleMapController mapController) async {
+    await mapController.animateCamera(cameraUpdate);
+    LatLngBounds l1 = await mapController.getVisibleRegion();
+    LatLngBounds l2 = await mapController.getVisibleRegion();
 
-  if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90) {
-    return checkCameraLocation(cameraUpdate, mapController);
+    if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90) {
+      return checkCameraLocation(cameraUpdate, mapController);
+    }
   }
 }

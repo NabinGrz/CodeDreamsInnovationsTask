@@ -1,15 +1,10 @@
-import 'dart:async';
-
 import 'package:core_dreams_innovations/core/constants/app_colors.dart';
 import 'package:core_dreams_innovations/core/constants/app_styles.dart';
 import 'package:core_dreams_innovations/core/constants/text_styles.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/location_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/place_provider.dart';
 import 'package:core_dreams_innovations/features/home/widget/content.dart';
-import 'package:core_dreams_innovations/shared/widgets/sizebox.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -25,16 +20,15 @@ class Home extends ConsumerStatefulWidget {
 
 class _HomeState extends ConsumerState<Home> {
   late final GoogleMapController mapController;
-  // Completer<GoogleMapController> _controller = Completer();
-
   final dragController = DraggableScrollableController();
   final startController = TextEditingController();
   final destinationController = TextEditingController();
+  GoogleMapAPINotifier get googleApiNotifier =>
+      ref.read(googleApiProvider.notifier);
   void listenToLocationProvider() async {
     ref.listen(locationProvider.select((value) => value),
         (previous, next) async {
       if (next.position != null) {
-        // final controller = await _controller.future;
         mapController.animateCamera(
           CameraUpdate.newCameraPosition(
             CameraPosition(
@@ -47,19 +41,10 @@ class _HomeState extends ConsumerState<Home> {
           ),
         );
 
-        final address = await Repo.latlngToPlace(
+        final address = await googleApiNotifier.latlngToPlace(
             "${next.position!.latitude},${next.position!.longitude}");
         startController.text = address?.formatted_address ?? "";
-        print("PLAPALPALAP${startController.text}");
       }
-      // if (next.position != null && ref.watch(destinationProvider) != null) {
-      //   final controller = await _controller.future;
-      //   await Repo.updateCameraLocationToZoomBetweenTwoMarkers(
-      //       LatLng(next.position!.latitude, next.position!.longitude),
-      //       ref.watch(destinationProvider)!,
-      //       _controller,
-      //       controller);
-      // }
     });
   }
 
@@ -101,16 +86,7 @@ class _HomeState extends ConsumerState<Home> {
                         : const LatLng(0.0, 0.0),
                   ),
                   onMapCreated: (controller) async {
-                    // _controller = controller;
-                    // setState(() {
                     mapController = controller;
-                    // });
-
-                    // if (!_controller.isCompleted) {
-                    //   _controller.complete(controller);
-                    //   // _controller = await _controller.future;
-                    // }
-                    // mapController = await _controller.future;
                     await ref
                         .read(locationProvider.notifier)
                         .checkLocationPermission(context);
@@ -183,29 +159,32 @@ class _HomeState extends ConsumerState<Home> {
                                           .update((state) => []);
 
                                       final routePoliyline =
-                                          await Repo.getRouteBetweenTwoPoints(
-                                              start: LatLng(
-                                                  locationState
-                                                      .position!.latitude,
-                                                  locationState
-                                                      .position!.longitude),
-                                              end: ref
-                                                  .watch(destinationProvider)!,
-                                              color: Colors.red);
+                                          await googleApiNotifier
+                                              .getRouteBetweenTwoPoints(
+                                                  start:
+                                                      LatLng(
+                                                          locationState
+                                                              .position!
+                                                              .latitude,
+                                                          locationState
+                                                              .position!
+                                                              .longitude),
+                                                  end: ref.watch(
+                                                      destinationProvider)!,
+                                                  color: Colors.red);
 
                                       ref
                                           .read(
                                               routePolyPointsProvider.notifier)
                                           .update((state) => routePoliyline);
-                                      // final controller =
-                                      //     await _controller.future;
-                                      final s = LatLng(
+                                      final start = LatLng(
                                           locationState.position!.latitude,
                                           locationState.position!.longitude);
-                                      final d = ref.watch(destinationProvider)!;
-                                      await Repo
+                                      final end =
+                                          ref.watch(destinationProvider)!;
+                                      await googleApiNotifier
                                           .updateCameraLocationToZoomBetweenTwoMarkers(
-                                              s, d, mapController);
+                                              start, end, mapController);
                                     },
                                   )
                                 : SliverPadding(
@@ -220,7 +199,6 @@ class _HomeState extends ConsumerState<Home> {
                                       ),
                                     ),
                                   ),
-                            // sizedBox(10),
                             SliverPadding(padding: EdgeInsets.all(6.h)),
                             ContenWidget(dragController, startController,
                                 destinationController),

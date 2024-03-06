@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -24,12 +23,8 @@ class ContenWidget extends ConsumerStatefulWidget {
 }
 
 class _ContenWidgetState extends ConsumerState<ContenWidget> {
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-  }
-
+  GoogleMapAPINotifier get googleApiNotifier =>
+      ref.read(googleApiProvider.notifier);
   @override
   Widget build(
     BuildContext context,
@@ -94,9 +89,8 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                                 border: InputBorder.none,
                               ),
                               onChanged: (pattern) async {
-                                var predictionModel =
-                                    await Repo.placeAutoComplete(
-                                        placeInput: pattern);
+                                var predictionModel = await googleApiNotifier
+                                    .placeAutoComplete(placeInput: pattern);
 
                                 if (predictionModel != null) {
                                   final places = predictionModel.predictions!
@@ -168,7 +162,8 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                 final place = ref.watch(placesProvider)[index];
                 return InkWell(
                   onTap: () async {
-                    final data = await Repo.placeToLatLng(place.place_id ?? "");
+                    final data = await googleApiNotifier
+                        .placeToLatLng(place.place_id ?? "");
                     final latlng = LatLng(
                       data?.geometry?.location?.lat ?? 0,
                       data?.geometry?.location?.lng ?? 0,
