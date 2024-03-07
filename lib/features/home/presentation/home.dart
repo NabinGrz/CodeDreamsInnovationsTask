@@ -164,47 +164,13 @@ class _HomeState extends ConsumerState<Home> {
                                 searchPlaceNotifier.clearSuggestions();
                               },
                               onDone: () async {
-                                ref
-                                    .read(routePolyPointsProvider.notifier)
-                                    .update((state) => []);
-                                ref
-                                    .read(routesProvider.notifier)
-                                    .update((state) => null);
-                                dragController.animateTo(0.3,
-                                    duration: const Duration(
-                                      milliseconds: 300,
-                                    ),
-                                    curve: Curves.easeInOut);
-                                destinationController.clear();
-                                searchPlaceNotifier.clearSuggestions();
-
-                                final start = LatLng(
-                                    locationState.position!.latitude,
-                                    locationState.position!.longitude);
-                                final end = destinationModel?.latLng;
-                                if (end != null) {
-                                  await googleApiNotifier
-                                      .getRouteBetweenTwoPoints(
-                                          start: start,
-                                          end: end,
-                                          color: AppColors.yellowColor)
-                                      .then((value) async {
-                                    ref
-                                        .read(routePolyPointsProvider.notifier)
-                                        .update((state) => value);
-                                    await googleApiNotifier
-                                        .updateCameraLocationToZoomBetweenTwoMarkers(
-                                            start, end, mapController!);
-
-                                    await ref
-                                        .read(distanceMatrixProvider.notifier)
-                                        .getDistance(
-                                            start:
-                                                "${start.latitude},${start.longitude}",
-                                            end:
-                                                "${end.latitude},${end.longitude}");
-                                  });
-                                }
+                                await googleApiNotifier.onDone(
+                                    ref,
+                                    dragController,
+                                    destinationController,
+                                    locationState,
+                                    mapController,
+                                    destinationModel);
                               },
                             )
                           : SliverPadding(

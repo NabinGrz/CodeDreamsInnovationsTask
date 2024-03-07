@@ -12,6 +12,8 @@ import 'package:core_dreams_innovations/features/home/domain/repositories/place_
 import 'package:core_dreams_innovations/features/home/domain/usecase/latlng_to_place_usecase.dart';
 import 'package:core_dreams_innovations/features/home/domain/usecase/place_to_latlng_usecase.dart';
 import 'package:core_dreams_innovations/features/home/domain/usecase/place_usecase.dart';
+import 'package:core_dreams_innovations/features/home/presentation/provider/location_provider.dart';
+import 'package:core_dreams_innovations/features/home/presentation/provider/search_place_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -24,6 +26,7 @@ import '../../domain/entities/place_latlng_model.dart';
 import '../../domain/repositories/route_repository_impl.dart';
 import '../../domain/usecase/get_route_usecase.dart';
 import '../../domain/usecase/update_camera_location_usecase.dart';
+import 'distance_matrix_provider.dart';
 
 final mapStyleProvider = FutureProvider((ref) async {
   final style = await rootBundle.loadString('assets/json/map_style.json');
@@ -113,4 +116,39 @@ class GoogleMapAPINotifier extends ChangeNotifier {
     GoogleMapController mapController,
   ) async =>
       await updateCameraUseCase.execute(source, destination, mapController);
+
+  Future<void> onDone(
+      WidgetRef ref,
+      DraggableScrollableController dragController,
+      TextEditingController destinationController,
+      LocationState locationState,
+      GoogleMapController? mapController,
+      PlaceLatLngModel? destinationModel) async {
+    ref.read(routePolyPointsProvider.notifier).update((state) => []);
+    ref.read(routesProvider.notifier).update((state) => null);
+    dragController.animateTo(0.3,
+        duration: const Duration(
+          milliseconds: 300,
+        ),
+        curve: Curves.easeInOut);
+    destinationController.clear();
+    ref.read(searchPlaceProvider.notifier).clearSuggestions();
+    final start = LatLng(
+        locationState.position!.latitude, locationState.position!.longitude);
+    final end = destinationModel?.latLng;
+    if (end != null) {
+      await getRouteBetweenTwoPoints(
+              start: start, end: end, color: AppColors.yellowColor)
+          .then((value) async {
+        ref.read(routePolyPointsProvider.notifier).update((state) => value);
+        if (mapController != null) {
+          await updateCameraLocationToZoomBetweenTwoMarkers(
+              start, end, mapController);
+        }
+        await ref.read(distanceMatrixProvider.notifier).getDistance(
+            start: "${start.latitude},${start.longitude}",
+            end: "${end.latitude},${end.longitude}");
+      });
+    }
+  }
 }
