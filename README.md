@@ -39,3 +39,9 @@ State management in this app is handled using Riverpod.
 
 This app allows users to search for places using keywords. The app then displays the searched places on Google Maps. Additionally, it provides users with information about the distance and travel time from their current location to the searched places, leveraging the Google Distance Matrix API. It also utilizes Geocoding and Places API for location-based services such as converting addresses into geographic coordinates (latitude and longitude) and fetching details about places.
 
+
+
+https://github.com/NabinGrz/CodeDreamsInnovationsTask/assets/81028182/d5feb543-764e-4422-a3f5-bfecd08cd4a9
+
+
+
