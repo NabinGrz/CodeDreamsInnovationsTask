@@ -6,8 +6,9 @@ import '../../widget/permission_dialog.dart';
 
 final locationProvider = StateNotifierProvider<LocationNotifier, LocationState>(
     (ref) => LocationNotifier());
-final isExpanded = StateProvider<bool>((ref) => false);
+final isExpandedProvider = StateProvider<bool>((ref) => false);
 
+//** Provider for checking and getting users current location */
 class LocationNotifier extends StateNotifier<LocationState> {
   LocationNotifier() : super(LocationState(isLoading: false));
 
@@ -61,7 +62,6 @@ class LocationNotifier extends StateNotifier<LocationState> {
         position: position,
         isLoading: false,
       );
-      print("AJKSDHJKASHDJAKS$position");
     } catch (e) {
       state = LocationState(isLoading: false);
       showDialog(

@@ -3,6 +3,7 @@ import 'package:core_dreams_innovations/features/home/domain/usecase/latlng_to_p
 import 'package:core_dreams_innovations/features/home/presentation/provider/place_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+//** Provider for converting latlng to place */
 final latlngProvider = StateNotifierProvider<LatLngNotifier, LocationModel?>(
     (ref) => LatLngNotifier(ref.read(latlngToPlaceUseCaseProvider)));
 

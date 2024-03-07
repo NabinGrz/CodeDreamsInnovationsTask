@@ -4,6 +4,7 @@ import '../../data/models/place_model.dart';
 import '../../domain/usecase/place_usecase.dart';
 import 'place_provider.dart';
 
+//** Provider for searching places on the basis of user input */
 final searchPlaceProvider =
     StateNotifierProvider<SearchPlaceNotifier, List<Description>>(
         (ref) => SearchPlaceNotifier(

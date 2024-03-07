@@ -1,5 +1,6 @@
 import 'package:core_dreams_innovations/features/home/presentation/provider/distance_matrix_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/select_place_provider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -73,7 +74,7 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
             ),
             sizedBox(20),
           },
-          ref.watch(isExpanded)
+          ref.watch(isExpandedProvider)
               ? Container(
                   decoration: BoxDecoration(
                     color: AppColors.backgroundGreyColor,
@@ -150,7 +151,7 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                     ),
                   ),
                 ),
-          if (ref.watch(isExpanded)) ...{
+          if (ref.watch(isExpandedProvider)) ...{
             Consumer(
               builder: (context, ref, child) {
                 return places.isEmpty
@@ -185,19 +186,19 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               item(
-                iconData: Icons.home_outlined,
+                iconData: CupertinoIcons.home,
                 name: "Home",
               ),
               item(
-                iconData: Icons.local_post_office_outlined,
+                iconData: Icons.chair_outlined,
                 name: "Office",
               ),
               item(
-                iconData: Icons.airplane_ticket_outlined,
+                iconData: CupertinoIcons.airplane,
                 name: "Airport",
               ),
               item(
-                iconData: Icons.add,
+                iconData: CupertinoIcons.add,
                 name: "Add",
               ),
             ],

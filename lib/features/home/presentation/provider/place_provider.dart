@@ -93,6 +93,7 @@ final routeDataSourceProvider =
     Provider<RouteDataSource>((ref) => RouteDataSourceImpl());
 final updateCameraUseCaseProvider = Provider((ref) => UpdateCameraUseCase());
 
+//** Provider for getting routes, update camera position and handling on done function */
 class GoogleMapAPINotifier extends ChangeNotifier {
   final GetRouteUseCase getRouteUseCase;
   final UpdateCameraUseCase updateCameraUseCase;
@@ -105,8 +106,6 @@ class GoogleMapAPINotifier extends ChangeNotifier {
       {required LatLng start,
       required LatLng end,
       required Color color}) async {
-    print(start);
-    print(end);
     return await getRouteUseCase.execute(start: start, end: end);
   }
 

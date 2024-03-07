@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../data/models/distance_model.dart';
 import '../../data/repositories/distance_repository.dart';
 
+//** Providers for calculating distance between two points*/
 final distanceDataSourceProvider =
     Provider<DistanceDataSource>((ref) => DistanceDataSourceImpl());
 final distanceRepostioryProvider = Provider<DistanceRepository>((ref) =>

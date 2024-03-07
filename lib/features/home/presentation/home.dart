@@ -2,7 +2,6 @@ import 'package:core_dreams_innovations/core/constants/app_colors.dart';
 import 'package:core_dreams_innovations/core/constants/app_styles.dart';
 import 'package:core_dreams_innovations/core/constants/text_styles.dart';
 import 'package:core_dreams_innovations/features/home/domain/entities/place_latlng_model.dart';
-import 'package:core_dreams_innovations/features/home/presentation/provider/distance_matrix_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/latlng_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/location_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/place_provider.dart';
@@ -35,7 +34,7 @@ class _HomeState extends ConsumerState<Home> {
   LatLngNotifier get latlngNotifier => ref.read(latlngProvider.notifier);
   SearchPlaceNotifier get searchPlaceNotifier =>
       ref.read(searchPlaceProvider.notifier);
-
+  bool get isExpanded => ref.watch(isExpandedProvider);
   void listenToLocationProvider() {
     ref.listen(locationProvider.select((value) => value),
         (previous, next) async {
@@ -65,8 +64,14 @@ class _HomeState extends ConsumerState<Home> {
     listenToLocationProvider();
     final locationState = ref.watch(locationProvider);
     return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        toolbarHeight: 0,
+        backgroundColor: AppColors.primary,
+      ),
       resizeToAvoidBottomInset: false,
       extendBody: true,
+      // extendBodyBehindAppBar: true,
       body: Stack(
         children: [
           GoogleMap(
@@ -114,7 +119,7 @@ class _HomeState extends ConsumerState<Home> {
           NotificationListener<DraggableScrollableNotification>(
             onNotification: (DraggableScrollableNotification dSNotification) {
               ref
-                  .read(isExpanded.notifier)
+                  .read(isExpandedProvider.notifier)
                   .update((state) => dSNotification.extent > 0.9);
 
               return dSNotification.extent > 0.9;
@@ -131,7 +136,7 @@ class _HomeState extends ConsumerState<Home> {
                 return DecoratedBox(
                   decoration: BoxDecoration(
                     color: AppColors.primary,
-                    borderRadius: ref.watch(isExpanded)
+                    borderRadius: isExpanded
                         ? null
                         : BorderRadius.only(
                             topLeft: Radius.circular(25.r),
@@ -151,7 +156,7 @@ class _HomeState extends ConsumerState<Home> {
                     controller: scrollController,
                     shrinkWrap: true,
                     slivers: [
-                      (ref.watch(isExpanded))
+                      (isExpanded)
                           ? Header(
                               dragController: dragController,
                               onCancel: () {
@@ -193,7 +198,19 @@ class _HomeState extends ConsumerState<Home> {
                 );
               },
             ),
-          )
+          ),
+          if (!isExpanded) ...{
+            const Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Icon(
+                  Icons.menu,
+                  color: Colors.white,
+                ),
+              ),
+            )
+          }
         ],
       ),
     );

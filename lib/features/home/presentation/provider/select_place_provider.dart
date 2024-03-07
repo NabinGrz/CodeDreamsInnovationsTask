@@ -12,6 +12,7 @@ final selectPlaceProvider =
     StateNotifierProvider<SelectPlaceNotifier, PlaceLatLngModel?>(
         (ref) => SelectPlaceNotifier(ref.read(placeToLatLngUseCaseProvider)));
 
+//** Provider for handling selection of place after searching */
 class SelectPlaceNotifier extends StateNotifier<PlaceLatLngModel?> {
   final PlaceToLatLngUseCase placeToLatLngUseCase;
   SelectPlaceNotifier(this.placeToLatLngUseCase) : super(null);
