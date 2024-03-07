@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../core/constants/text_styles.dart';
-import '../../../shared/widgets/sizebox.dart';
-import '../data/models/place_model.dart';
+import '../../../../core/constants/text_styles.dart';
+import '../../../../shared/widgets/sizebox.dart';
+import '../../data/models/place_model.dart';
 
 class PlaceItemWidget extends StatelessWidget {
   const PlaceItemWidget({

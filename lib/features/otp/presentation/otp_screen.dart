@@ -3,7 +3,7 @@ import 'package:core_dreams_innovations/core/constants/app_styles.dart';
 import 'package:core_dreams_innovations/core/constants/text_styles.dart';
 import 'package:core_dreams_innovations/features/home/presentation/home.dart';
 import 'package:core_dreams_innovations/features/otp/domain/entities/auth_state.dart';
-import 'package:core_dreams_innovations/features/otp/provider/otp_provider.dart';
+import 'package:core_dreams_innovations/features/otp/presentation/provider/otp_provider.dart';
 import 'package:core_dreams_innovations/shared/widgets/sizebox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -22,6 +22,8 @@ class OTPScreen extends ConsumerStatefulWidget {
 
 class _OTPScreenState extends ConsumerState<OTPScreen> {
   final otpController = TextEditingController();
+  bool get isLoading =>
+      ref.watch(otpProvider).type == const AuthState.loading().type;
   void listenToProvider() {
     ref.listen(otpProvider.select((value) => value), (previous, next) {
       if (next.type == AuthStateType.failure) {
@@ -55,10 +57,12 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
         appBar: AppBar(
           backgroundColor: AppColors.primary,
           elevation: 0,
+          // leading: isLoading ? const SizedBox.shrink() : null,
           iconTheme: const IconThemeData(
             color: AppColors.yellowColor,
           ),
           actions: [
+            // if (!isLoading) ...{
             TextButton(
                 autofocus: true,
                 onPressed: () async {
@@ -79,6 +83,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                     color: AppColors.yellowColor,
                   ),
                 ))
+            // }
           ],
         ),
         body: Padding(

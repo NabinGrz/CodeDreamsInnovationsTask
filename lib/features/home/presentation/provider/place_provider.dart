@@ -44,14 +44,12 @@ final destinationIconProvider = FutureProvider((ref) async {
 final startProvider = StateProvider<PlaceLatLngModel?>((ref) => null);
 final routePolyPointsProvider = StateProvider<List<PointLatLng>>((ref) => []);
 final routesProvider = StateProvider<Polyline?>((ref) {
+  final routes = ref.watch(routePolyPointsProvider);
   final polyline = Polyline(
       polylineId: const PolylineId("Routes"),
       color: AppColors.yellowColor,
       width: 3,
-      points: ref
-          .watch(routePolyPointsProvider)
-          .map((e) => LatLng(e.latitude, e.longitude))
-          .toList());
+      points: routes.map((e) => LatLng(e.latitude, e.longitude)).toList());
 
   return polyline;
 });

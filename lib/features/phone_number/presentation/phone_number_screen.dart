@@ -1,7 +1,7 @@
 import 'package:core_dreams_innovations/core/constants/app_colors.dart';
 import 'package:core_dreams_innovations/core/constants/app_styles.dart';
 import 'package:core_dreams_innovations/core/constants/text_styles.dart';
-import 'package:core_dreams_innovations/features/phone_number/provider/phone_number_provider.dart';
+import 'package:core_dreams_innovations/features/phone_number/presentation/provider/phone_number_provider.dart';
 import 'package:core_dreams_innovations/shared/widgets/sizebox.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,8 +17,7 @@ class PhoneNumberScreen extends ConsumerStatefulWidget {
 
 class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
   final mobileNumberController = TextEditingController();
-  PhoneNumberNotifier get notifier =>
-      ref.read(verifyPhoneNumberProvider.notifier);
+  PhoneNumberNotifier get notifier => ref.read(isLoadingProvider.notifier);
 
   @override
   Widget build(BuildContext context) {
@@ -28,31 +27,33 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
         backgroundColor: AppColors.primary,
         elevation: 0,
         actions: [
-          TextButton(
-              onPressed: () async {
-                if (mobileNumberController.text.isNotEmpty) {
-                  await ref
-                      .read(verifyPhoneNumberProvider.notifier)
-                      .verifyPhoneNumber(
-                          mobileNumberController.text, context, ref);
-                } else {
-                  ref
-                      .read(numberValidationProvider.notifier)
-                      .update((state) => "This field is required");
-                }
-              },
-              child: Text(
-                "Done",
-                style: bold().copyWith(
-                  fontSize: 20.sp,
-                  color: AppColors.yellowColor,
-                ),
-              ))
+          if (!ref.watch(isLoadingProvider)) ...{
+            TextButton(
+                onPressed: () async {
+                  if (mobileNumberController.text.isNotEmpty) {
+                    await ref
+                        .read(isLoadingProvider.notifier)
+                        .verifyPhoneNumber(
+                            mobileNumberController.text, context, ref);
+                  } else {
+                    ref
+                        .read(numberValidationProvider.notifier)
+                        .update((state) => "This field is required");
+                  }
+                },
+                child: Text(
+                  "Done",
+                  style: bold().copyWith(
+                    fontSize: 20.sp,
+                    color: AppColors.yellowColor,
+                  ),
+                ))
+          }
         ],
       ),
       body: Consumer(
         builder: (context, ref, child) {
-          return ref.watch(verifyPhoneNumberProvider)
+          return ref.watch(isLoadingProvider)
               ? const Center(
                   child: CircularProgressIndicator.adaptive(),
                 )

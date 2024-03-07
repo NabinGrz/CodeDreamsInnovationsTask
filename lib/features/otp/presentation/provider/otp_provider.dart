@@ -2,8 +2,8 @@ import 'package:core_dreams_innovations/features/otp/domain/entities/auth_state.
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../core/helper/firebase_auth_helper.dart';
-import '../../phone_number/provider/phone_number_provider.dart';
+import '../../../../core/helper/firebase_auth_helper.dart';
+import '../../../phone_number/presentation/provider/phone_number_provider.dart';
 
 final otpValidationProvider = StateProvider<String?>((ref) => null);
 final otpProvider = StateNotifierProvider<OTPNotifier, AuthState>(

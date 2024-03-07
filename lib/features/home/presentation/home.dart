@@ -6,13 +6,13 @@ import 'package:core_dreams_innovations/features/home/presentation/provider/latl
 import 'package:core_dreams_innovations/features/home/presentation/provider/location_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/place_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/select_place_provider.dart';
-import 'package:core_dreams_innovations/features/home/widget/content.dart';
+import 'package:core_dreams_innovations/features/home/presentation/widget/content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../widget/header.dart';
+import 'widget/header.dart';
 import 'provider/search_place_provider.dart';
 
 class Home extends ConsumerStatefulWidget {

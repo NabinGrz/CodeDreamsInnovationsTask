@@ -6,15 +6,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'dart:async';
 
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_styles.dart';
-import '../../../core/constants/text_styles.dart';
-import '../../../shared/widgets/custom_text_field.dart';
-import '../../../shared/widgets/sizebox.dart';
-import '../data/models/place_model.dart';
-import '../presentation/provider/location_provider.dart';
-import '../presentation/provider/place_provider.dart';
-import '../presentation/provider/search_place_provider.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_styles.dart';
+import '../../../../core/constants/text_styles.dart';
+import '../../../../shared/widgets/custom_text_field.dart';
+import '../../../../shared/widgets/sizebox.dart';
+import '../../data/models/place_model.dart';
+import '../provider/location_provider.dart';
+import '../provider/place_provider.dart';
+import '../provider/search_place_provider.dart';
 import 'place_item_widget.dart';
 
 class ContenWidget extends ConsumerStatefulWidget {
@@ -36,7 +36,7 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
       ref.read(searchPlaceProvider.notifier);
   SelectPlaceNotifier get selectPlaceNotifier =>
       ref.read(selectPlaceProvider.notifier);
-
+  bool get isExpanded => ref.watch(isExpandedProvider);
   List<Description> get places => ref.watch(searchPlaceProvider);
   Timer? _debounce;
   @override
@@ -51,7 +51,7 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
       padding: EdgeInsets.symmetric(horizontal: screenMargin),
       sliver: SliverList.list(
         children: [
-          if (ref.watch(distanceMatrixProvider) != null) ...{
+          if (ref.watch(distanceMatrixProvider) != null && !isExpanded) ...{
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -74,7 +74,7 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
             ),
             sizedBox(20),
           },
-          ref.watch(isExpandedProvider)
+          isExpanded
               ? Container(
                   decoration: BoxDecoration(
                     color: AppColors.backgroundGreyColor,

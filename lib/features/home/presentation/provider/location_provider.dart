@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../widget/permission_dialog.dart';
+import '../widget/permission_dialog.dart';
 
 final locationProvider = StateNotifierProvider<LocationNotifier, LocationState>(
     (ref) => LocationNotifier());

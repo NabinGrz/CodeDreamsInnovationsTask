@@ -2,17 +2,16 @@ import 'package:core_dreams_innovations/core/dependency_injection/injector.dart'
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../core/helper/firebase_auth_helper.dart';
-import '../../otp/presentation/otp_screen.dart';
-import '../../otp/presentation/widgets/login_failed_dialog.dart';
+import '../../../../core/helper/firebase_auth_helper.dart';
+import '../../../otp/presentation/otp_screen.dart';
+import '../../../otp/presentation/widgets/login_failed_dialog.dart';
 
 final numberValidationProvider = StateProvider<String?>((ref) => null);
 final idProvider = StateProvider<String?>((ref) => null);
 final authHelperProvider =
     Provider<FirebaseAuthHelper>((ref) => getIt<FirebaseAuthHelper>());
-final verifyPhoneNumberProvider =
-    StateNotifierProvider<PhoneNumberNotifier, bool>(
-        (ref) => PhoneNumberNotifier(auth: ref.read(authHelperProvider)));
+final isLoadingProvider = StateNotifierProvider<PhoneNumberNotifier, bool>(
+    (ref) => PhoneNumberNotifier(auth: ref.read(authHelperProvider)));
 
 class PhoneNumberNotifier extends StateNotifier<bool> {
   final FirebaseAuthHelper auth;
