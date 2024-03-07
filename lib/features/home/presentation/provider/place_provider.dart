@@ -1,19 +1,20 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:core_dreams_innovations/core/constants/app_colors.dart';
-import 'package:core_dreams_innovations/core/constants/app_string.dart';
 import 'package:core_dreams_innovations/features/home/data/models/location_model.dart';
+import 'package:core_dreams_innovations/features/home/domain/usecase/latlng_to_place_usecase.dart';
+import 'package:core_dreams_innovations/features/home/domain/usecase/place_to_latlng_usecase.dart';
+import 'package:core_dreams_innovations/features/home/domain/usecase/place_usecase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:http/http.dart' as http;
 import '../../data/models/place_model.dart';
-import 'package:collection/collection.dart';
 import 'dart:ui' as ui;
 
 import '../../domain/entities/place_latlng_model.dart';
+import '../../domain/usecase/get_route_usecase.dart';
+import '../../domain/usecase/update_camera_location_usecase.dart';
 
 final mapStyleProvider = FutureProvider((ref) async {
   final style = await rootBundle.loadString('assets/json/map_style.json');
@@ -47,7 +48,7 @@ final routesProvider = StateProvider<Polyline?>((ref) {
   final polyline = Polyline(
       polylineId: const PolylineId("Routes"),
       color: AppColors.yellowColor,
-      width: 6,
+      width: 3,
       points: ref
           .watch(routePolyPointsProvider)
           .map((e) => LatLng(e.latitude, e.longitude))
@@ -55,126 +56,89 @@ final routesProvider = StateProvider<Polyline?>((ref) {
 
   return polyline;
 });
-final googleApiProvider = ChangeNotifierProvider<GoogleMapAPINotifier>(
-    (ref) => GoogleMapAPINotifier());
+final googleApiProvider = ChangeNotifierProvider<GoogleMapAPINotifier>((ref) {
+  final placeUseCase = ref.read(placeUseCaseProvider);
+  final placeToLatLngUseCase = ref.read(placeToLatLngUseCaseProvider);
+  final latLngToPlaceUseCase = ref.read(latlngToPlaceUseCaseProvider);
+  final getRouteUseCase = ref.read(getRouteUseCaseProvider);
+  final updateCameraUseCase = ref.read(updateCameraUseCaseProvider);
+  return GoogleMapAPINotifier(
+      getRouteUseCase: getRouteUseCase,
+      placeUseCase: placeUseCase,
+      placeToLatLngUseCase: placeToLatLngUseCase,
+      latLngToPlaceUseCase: latLngToPlaceUseCase,
+      updateCameraUseCase: updateCameraUseCase);
+});
+
+final placeUseCaseProvider = Provider((ref) => PlaceAutocompleteUseCase());
+final placeToLatLngUseCaseProvider = Provider((ref) => PlaceToLatLngUseCase());
+final latlngToPlaceUseCaseProvider = Provider((ref) => LatLngToPlaceUseCase());
+final getRouteUseCaseProvider = Provider((ref) => GetRouteUseCase());
+final updateCameraUseCaseProvider = Provider((ref) => UpdateCameraUseCase());
 
 class GoogleMapAPINotifier extends ChangeNotifier {
+  final PlaceAutocompleteUseCase placeUseCase;
+  final PlaceToLatLngUseCase placeToLatLngUseCase;
+  final LatLngToPlaceUseCase latLngToPlaceUseCase;
+  final GetRouteUseCase getRouteUseCase;
+  final UpdateCameraUseCase updateCameraUseCase;
+  GoogleMapAPINotifier(
+      {required this.latLngToPlaceUseCase,
+      required this.placeToLatLngUseCase,
+      required this.getRouteUseCase,
+      required this.updateCameraUseCase,
+      required this.placeUseCase});
   Future<PredictionModel?> placeAutoComplete(
       {required String placeInput}) async {
-    try {
-      Map<String, dynamic> querys = {
-        'input': placeInput,
-        'key': AppString.apiKey
-      };
-      final url = Uri.https(
-          AppString.googleApiUrl, "maps/api/place/autocomplete/json", querys);
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        return PredictionModel.fromJson(jsonDecode(response.body));
-      } else {
-        response.body;
-      }
-    } on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-    return null;
+    return await placeUseCase.execute(placeInput);
   }
 
   Future<LocationModel?> placeToLatLng(String placeId) async {
-    try {
-      Map<String, dynamic> querys = {
-        'place_id': placeId,
-        'key': AppString.apiKey
-      };
-      final url =
-          Uri.https(AppString.googleApiUrl, "maps/api/geocode/json", querys);
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final test = jsonDecode(response.body);
-        final p = LocationModel.fromJson(test['results'][0]);
-        return p;
-      } else {
-        response.body;
-      }
-    } on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-    return null;
+    return await placeToLatLngUseCase.execute(placeId);
   }
 
   Future<LocationModel?> latlngToPlace(String latlng) async {
-    try {
-      Map<String, dynamic> querys = {
-        'latlng': Uri.encodeFull(latlng),
-        'key': AppString.apiKey
-      };
-      final url =
-          Uri.https(AppString.googleApiUrl, "maps/api/geocode/json", querys);
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final results = data['results'] as List<dynamic>;
-        return results.map((e) => LocationModel.fromJson(e)).firstWhereOrNull(
-            (element) => element.types?.contains("route") ?? false);
-      } else {
-        response.body;
-      }
-    } on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-    return null;
+    return await latLngToPlaceUseCase.execute(latlng);
   }
 
   Future<List<PointLatLng>> getRouteBetweenTwoPoints(
       {required LatLng start,
       required LatLng end,
       required Color color}) async {
-    PolylinePoints polylinePoints = PolylinePoints();
-    PolylineResult res = await polylinePoints.getRouteBetweenCoordinates(
-        AppString.apiKey,
-        PointLatLng(start.latitude, start.longitude),
-        PointLatLng(end.latitude, end.longitude));
-    if (res.points.isNotEmpty) {
-      return res.points;
-    } else {
-      return [];
-    }
+    return await getRouteUseCase.execute(start: start, end: end);
   }
 
   Future<void> updateCameraLocationToZoomBetweenTwoMarkers(
     LatLng source,
     LatLng destination,
     GoogleMapController mapController,
-  ) async {
-    LatLngBounds bounds;
+  ) async =>
+      await updateCameraUseCase.execute(source, destination, mapController);
 
-    if (source.latitude > destination.latitude &&
-        source.longitude > destination.longitude) {
-      bounds = LatLngBounds(southwest: destination, northeast: source);
-    } else if (source.longitude > destination.longitude) {
-      bounds = LatLngBounds(
-          southwest: LatLng(source.latitude, destination.longitude),
-          northeast: LatLng(destination.latitude, source.longitude));
-    } else if (source.latitude > destination.latitude) {
-      bounds = LatLngBounds(
-          southwest: LatLng(destination.latitude, source.longitude),
-          northeast: LatLng(source.latitude, destination.longitude));
+  Future<void> searchPlace(String pattern, WidgetRef ref) async {
+    if (pattern.length >= 3) {
+      var predictionModel = await placeAutoComplete(placeInput: pattern);
+      if (predictionModel != null) {
+        final places = predictionModel.predictions!
+            .where((element) => element.description!
+                .toLowerCase()
+                .contains(pattern.toLowerCase()))
+            .toList();
+        ref.read(placesProvider.notifier).update((state) => places);
+      }
     } else {
-      bounds = LatLngBounds(southwest: source, northeast: destination);
+      ref.read(placesProvider.notifier).update((state) => []);
     }
-
-    CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 120);
-    return checkCameraLocation(cameraUpdate, mapController);
   }
 
-  Future<void> checkCameraLocation(
-      CameraUpdate cameraUpdate, GoogleMapController mapController) async {
-    await mapController.animateCamera(cameraUpdate);
-    LatLngBounds l1 = await mapController.getVisibleRegion();
-    LatLngBounds l2 = await mapController.getVisibleRegion();
-
-    if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90) {
-      return checkCameraLocation(cameraUpdate, mapController);
-    }
+  Future<void> onSelectPlace(Description place, WidgetRef ref) async {
+    ref.read(placesProvider.notifier).update((state) => []);
+    final location = await placeToLatLng(place.place_id ?? "");
+    final latlng = LatLng(
+      location?.geometry?.location?.lat ?? 0,
+      location?.geometry?.location?.lng ?? 0,
+    );
+    ref.read(destinationProvider.notifier).update(
+        (state) => PlaceLatLngModel(description: place, latLng: latlng));
   }
 }

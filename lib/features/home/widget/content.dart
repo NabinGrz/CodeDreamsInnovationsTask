@@ -1,16 +1,16 @@
-import 'package:core_dreams_innovations/features/home/domain/entities/place_latlng_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'dart:async';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import '../../../core/constants/text_styles.dart';
+import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/sizebox.dart';
 import '../presentation/provider/location_provider.dart';
 import '../presentation/provider/place_provider.dart';
+import 'place_item_widget.dart';
 
 class ContenWidget extends ConsumerStatefulWidget {
   final DraggableScrollableController dragController;
@@ -35,9 +35,7 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
   }
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return SliverPadding(
       padding: EdgeInsets.symmetric(horizontal: screenMargin),
       sliver: SliverList.list(
@@ -56,81 +54,27 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            TextFormField(
-                              readOnly: true,
-                              controller: widget.startController,
-                              style: regular().copyWith(
-                                fontSize: 20.sp,
-                                color: Colors.white,
-                              ),
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.only(
-                                  left: 10,
-                                ),
-                                hintText: "Start",
-                                hintStyle: regular().copyWith(
-                                  fontSize: 20.sp,
-                                  color: AppColors.textGreyColor,
-                                ),
-                                border: InputBorder.none,
-                              ),
-                            ),
+                            CustomTextField(
+                                controller: widget.startController,
+                                hintText: "Start"),
                             const Divider(
                               color: AppColors.textColor,
                               thickness: 0.2,
                               height: 1,
                             ),
-                            TextFormField(
-                              autofocus: true,
+                            CustomTextField(
                               controller: widget.destinationController,
-                              style: regular().copyWith(
-                                fontSize: 20.sp,
-                                color: Colors.white,
-                              ),
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.only(
-                                  left: 10,
-                                ),
-                                hintText: "Destination",
-                                hintStyle: regular().copyWith(
-                                  fontSize: 20.sp,
-                                  color: AppColors.textGreyColor,
-                                ),
-                                border: InputBorder.none,
-                              ),
+                              hintText: "Destination",
                               onChanged: (pattern) async {
                                 if (_debounce?.isActive ?? false) {
                                   _debounce?.cancel();
                                 }
-                                _debounce =
-                                    Timer(const Duration(milliseconds: 300),
-                                        () async {
-                                  if (pattern.length >= 3) {
-                                    var predictionModel =
-                                        await googleApiNotifier
-                                            .placeAutoComplete(
-                                                placeInput: pattern);
-
-                                    if (predictionModel != null) {
-                                      final places = predictionModel
-                                          .predictions!
-                                          .where((element) => element
-                                              .description!
-                                              .toLowerCase()
-                                              .contains(pattern.toLowerCase()))
-                                          .toList();
-                                      ref
-                                          .read(placesProvider.notifier)
-                                          .update((state) => places);
-                                    }
-                                  } else {
-                                    ref
-                                        .read(placesProvider.notifier)
-                                        .update((state) => []);
-                                  }
-                                });
+                                _debounce = Timer(
+                                    const Duration(milliseconds: 300),
+                                    () async => await googleApiNotifier
+                                        .searchPlace(pattern, ref));
                               },
-                            ),
+                            )
                           ],
                         ),
                       ),
@@ -188,41 +132,9 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                 return InkWell(
                   onTap: () async {
                     widget.destinationController.text = place.description ?? "";
-                    final data = await googleApiNotifier
-                        .placeToLatLng(place.place_id ?? "");
-                    final latlng = LatLng(
-                      data?.geometry?.location?.lat ?? 0,
-                      data?.geometry?.location?.lng ?? 0,
-                    );
-                    ref.read(destinationProvider.notifier).update((state) =>
-                        PlaceLatLngModel(description: place, latLng: latlng));
-
-                    ref.read(placesProvider.notifier).update((state) => []);
+                    await googleApiNotifier.onSelectPlace(place, ref);
                   },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      vertical: 10.h,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.location_on,
-                          color: Colors.white,
-                          size: 18.w,
-                        ),
-                        sizedBox(10),
-                        Expanded(
-                          child: Text(
-                            "${place.description}",
-                            style: regular().copyWith(
-                              fontSize: 16.sp,
-                              color: Colors.white,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
+                  child: PlaceItemWidget(place: place),
                 );
               },
             )

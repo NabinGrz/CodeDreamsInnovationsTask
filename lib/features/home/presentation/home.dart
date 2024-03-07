@@ -6,7 +6,6 @@ import 'package:core_dreams_innovations/features/home/presentation/provider/loca
 import 'package:core_dreams_innovations/features/home/presentation/provider/place_provider.dart';
 import 'package:core_dreams_innovations/features/home/widget/content.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -29,7 +28,8 @@ class _HomeState extends ConsumerState<Home> {
   Polyline? get routePolyLines => ref.watch(routesProvider);
   GoogleMapAPINotifier get googleApiNotifier =>
       ref.read(googleApiProvider.notifier);
-  void listenToLocationProvider() async {
+
+  void listenToLocationProvider() {
     ref.listen(locationProvider.select((value) => value),
         (previous, next) async {
       if (next.position != null) {
