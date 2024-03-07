@@ -1,4 +1,5 @@
 import 'package:core_dreams_innovations/features/home/presentation/home.dart';
+import 'package:core_dreams_innovations/features/phone_number/presentation/phone_number_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -33,6 +34,6 @@ class MyApp extends StatelessWidget {
             theme: ThemeData(useMaterial3: false),
           );
         },
-        child: const Home());
+        child: const PhoneNumberScreen());
   }
 }

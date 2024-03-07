@@ -24,7 +24,7 @@ class FirebaseAuthHelper {
       {required String phoneNumber,
       required void Function(String, int?) codeSent}) async {
     UserCredential? userCredentials;
-    await _firebaseAuth.setSettings(appVerificationDisabledForTesting: true);
+    // await _firebaseAuth.setSettings(appVerificationDisabledForTesting: true);
     try {
       await _firebaseAuth.verifyPhoneNumber(
         phoneNumber: "+977$phoneNumber",
@@ -34,9 +34,8 @@ class FirebaseAuthHelper {
         },
         verificationFailed: (error) {
           error;
-          print(error);
         },
-        codeSent: (verificationId, forceResendingToken) async {
+        codeSent: (verificationId, forceResendingToken) {
           codeSent(verificationId, forceResendingToken);
         },
         codeAutoRetrievalTimeout: (verificationId) {},
@@ -47,22 +46,4 @@ class FirebaseAuthHelper {
       return Right(e.message);
     }
   }
-
-  // test() async {/
-  //   await _firebaseAuth.signInWithPhoneNumber(phoneNumber);
-  // }
-  // Future<Either<UserCredential?, String?>> register(
-  //     {required String email, required String password}) async {
-  //   try {
-  //     final userCredentials = await _firebaseAuth
-  //         .createUserWithEmailAndPassword(email: email, password: password);
-  //     return Left(userCredentials);
-  //   } on FirebaseAuthException catch (e) {
-  //     return Right(e.message);
-  //   }
-  // }
-
-  // Future<void> signOut() async {
-  //   await _firebaseAuth.signOut();
-  // }
 }

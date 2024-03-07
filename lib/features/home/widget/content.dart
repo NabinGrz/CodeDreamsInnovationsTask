@@ -1,5 +1,7 @@
+import 'package:core_dreams_innovations/features/home/presentation/provider/distance_matrix_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/select_place_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'dart:async';
@@ -9,6 +11,7 @@ import '../../../core/constants/app_styles.dart';
 import '../../../core/constants/text_styles.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/sizebox.dart';
+import '../data/models/place_model.dart';
 import '../presentation/provider/location_provider.dart';
 import '../presentation/provider/place_provider.dart';
 import '../presentation/provider/search_place_provider.dart';
@@ -33,6 +36,8 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
       ref.read(searchPlaceProvider.notifier);
   SelectPlaceNotifier get selectPlaceNotifier =>
       ref.read(selectPlaceProvider.notifier);
+
+  List<Description> get places => ref.watch(searchPlaceProvider);
   Timer? _debounce;
   @override
   void dispose() {
@@ -46,6 +51,29 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
       padding: EdgeInsets.symmetric(horizontal: screenMargin),
       sliver: SliverList.list(
         children: [
+          if (ref.watch(distanceMatrixProvider) != null) ...{
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  "Distance: ${ref.watch(distanceMatrixProvider)?.rows?.first.elements?.first.distance?.text}",
+                  style: regular().copyWith(
+                    fontSize: 16.sp,
+                    color: Colors.white,
+                  ),
+                ),
+                sizedBox(10),
+                Text(
+                  "Travel Time: ${ref.watch(distanceMatrixProvider)?.rows?.first.elements?.first.duration?.text}",
+                  style: regular().copyWith(
+                    fontSize: 16.sp,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            sizedBox(20),
+          },
           ref.watch(isExpanded)
               ? Container(
                   decoration: BoxDecoration(
@@ -126,29 +154,30 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
           if (ref.watch(isExpanded)) ...{
             Consumer(
               builder: (context, ref, child) {
-                return ListView.separated(
-                  separatorBuilder: (context, index) {
-                    return const Divider(
-                      color: AppColors.textGreyColor,
-                      height: 6,
-                    );
-                  },
-                  shrinkWrap: true,
-                  itemCount: ref.watch(searchPlaceProvider).length,
-                  // ref.watch(placesProvider).length,
-                  itemBuilder: (context, index) {
-                    final place = ref.watch(searchPlaceProvider)[index];
-                    // ref.watch(placesProvider)[index];
-                    return InkWell(
-                      onTap: () async {
-                        widget.destinationController.text =
-                            place.description ?? "";
-                        await selectPlaceNotifier.onSelectPlace(place, ref);
-                      },
-                      child: PlaceItemWidget(place: place),
-                    );
-                  },
-                );
+                return places.isEmpty
+                    ? const SizedBox.shrink()
+                    : ListView.separated(
+                        separatorBuilder: (context, index) {
+                          return const Divider(
+                            color: AppColors.textGreyColor,
+                            height: 6,
+                          );
+                        },
+                        shrinkWrap: true,
+                        itemCount: places.length,
+                        itemBuilder: (context, index) {
+                          final place = places[index];
+                          return InkWell(
+                            onTap: () async {
+                              widget.destinationController.text =
+                                  place.description ?? "";
+                              await selectPlaceNotifier.onSelectPlace(
+                                  place, ref);
+                            },
+                            child: PlaceItemWidget(place: place),
+                          );
+                        },
+                      );
               },
             )
           },

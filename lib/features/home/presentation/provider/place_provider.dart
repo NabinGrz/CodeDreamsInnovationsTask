@@ -67,6 +67,8 @@ class GoogleMapAPINotifier extends ChangeNotifier {
       {required LatLng start,
       required LatLng end,
       required Color color}) async {
+    print(start);
+    print(end);
     return await getRouteUseCase.execute(start: start, end: end);
   }
 

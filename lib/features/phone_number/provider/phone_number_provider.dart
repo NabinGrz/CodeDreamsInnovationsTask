@@ -6,36 +6,39 @@ import '../../../core/helper/firebase_auth_helper.dart';
 import '../../otp/presentation/otp_screen.dart';
 
 final numberValidationProvider = StateProvider<String?>((ref) => null);
+final idProvider = StateProvider<String?>((ref) => null);
 final authHelperProvider =
     Provider<FirebaseAuthHelper>((ref) => getIt<FirebaseAuthHelper>());
-final verifyPhoneNumberProvider = ChangeNotifierProvider(
-    (ref) => PhoneNumberNotifier(auth: ref.read(authHelperProvider)));
+final verifyPhoneNumberProvider =
+    StateNotifierProvider<PhoneNumberNotifier, bool>(
+        (ref) => PhoneNumberNotifier(auth: ref.read(authHelperProvider)));
 
-class PhoneNumberNotifier extends ChangeNotifier {
+class PhoneNumberNotifier extends StateNotifier<bool> {
   final FirebaseAuthHelper auth;
 
-  PhoneNumberNotifier({required this.auth});
-  bool isLoading = false;
-  Future<void> verifyPhoneNumber(String number, BuildContext context) async {
-    isLoading = true;
+  PhoneNumberNotifier({required this.auth}) : super(false);
 
-    await auth
-        .verifyPhoneNumber(
-          phoneNumber: number,
-          codeSent: (verificationId, forceResendingToken) async {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OTPScreen(
-                  verificationId,
-                ),
-              ),
-            );
-          },
-        )
-        .then((value) => isLoading = false);
-
-    print(isLoading);
-    notifyListeners();
+  Future<void> verifyPhoneNumber(
+      String number, BuildContext context, WidgetRef ref) async {
+    state = true;
+    await auth.verifyPhoneNumber(
+      phoneNumber: number,
+      codeSent: (verificationId, forceResendingToken) {
+        ref.read(idProvider.notifier).update((state) => verificationId);
+      },
+    );
+    await Future.delayed(const Duration(seconds: 3)).then((_) async {
+      if (ref.watch(idProvider) != null) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OTPScreen(
+              ref.watch(idProvider)!,
+            ),
+          ),
+        );
+        state = false;
+      }
+    });
   }
 }

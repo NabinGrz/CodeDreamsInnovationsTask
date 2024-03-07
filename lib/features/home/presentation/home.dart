@@ -2,6 +2,7 @@ import 'package:core_dreams_innovations/core/constants/app_colors.dart';
 import 'package:core_dreams_innovations/core/constants/app_styles.dart';
 import 'package:core_dreams_innovations/core/constants/text_styles.dart';
 import 'package:core_dreams_innovations/features/home/domain/entities/place_latlng_model.dart';
+import 'package:core_dreams_innovations/features/home/presentation/provider/distance_matrix_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/latlng_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/location_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/place_provider.dart';
@@ -142,7 +143,7 @@ class _HomeState extends ConsumerState<Home> {
                           ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.white.withOpacity(0.43),
+                        color: Colors.white.withOpacity(0.3),
                         spreadRadius: 6,
                         blurRadius: 20,
                       )
@@ -198,6 +199,14 @@ class _HomeState extends ConsumerState<Home> {
                                     await googleApiNotifier
                                         .updateCameraLocationToZoomBetweenTwoMarkers(
                                             start, end, mapController!);
+
+                                    await ref
+                                        .read(distanceMatrixProvider.notifier)
+                                        .getDistance(
+                                            start:
+                                                "${start.latitude},${start.longitude}",
+                                            end:
+                                                "${end.latitude},${end.longitude}");
                                   });
                                 }
                               },
