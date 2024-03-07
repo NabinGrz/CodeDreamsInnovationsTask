@@ -11,7 +11,6 @@ final otpProvider = StateNotifierProvider<OTPNotifier, AuthState>(
 
 class OTPNotifier extends StateNotifier<AuthState> {
   final FirebaseAuthHelper auth;
-  bool isLoading = false;
 
   OTPNotifier({required this.auth}) : super(const AuthState.initial());
 
@@ -25,7 +24,8 @@ class OTPNotifier extends StateNotifier<AuthState> {
 
   Future<void> signInUser(PhoneAuthCredential credential) async {
     try {
-      final user = await auth.firebaseAuth.signInWithCredential(credential);
+      state = const AuthState.loading();
+      await auth.firebaseAuth.signInWithCredential(credential);
       state = const AuthState.success("Done");
     } on FirebaseAuthException catch (e) {
       state = AuthState.failure(e.message);

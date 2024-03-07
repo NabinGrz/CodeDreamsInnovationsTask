@@ -49,90 +49,92 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
   @override
   Widget build(BuildContext context) {
     listenToProvider();
-    return Scaffold(
-      backgroundColor: AppColors.primary,
-      appBar: AppBar(
+    return Consumer(builder: (context, ref, child) {
+      return Scaffold(
         backgroundColor: AppColors.primary,
-        elevation: 0,
-        iconTheme: const IconThemeData(
-          color: AppColors.yellowColor,
-        ),
-        actions: [
-          TextButton(
-              autofocus: true,
-              onPressed: () async {
-                if (otpController.text.isNotEmpty) {
-                  await ref
-                      .read(otpProvider.notifier)
-                      .verifyOTP(widget.verificationId, otpController.text);
-                } else {
-                  ref
-                      .read(otpValidationProvider.notifier)
-                      .update((state) => "Please enter your OTP");
-                }
-              },
-              child: Text(
-                "Done",
-                style: bold().copyWith(
-                  fontSize: 20.sp,
-                  color: AppColors.yellowColor,
-                ),
-              ))
-        ],
-      ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: screenMargin,
-          vertical: screenMargin,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Enter OTP Code",
-              style: bold().copyWith(
-                fontSize: 26.sp,
-                color: AppColors.textColor,
-              ),
-            ),
-            sizedBox(12),
-            PinCodeTextField(
-              controller: otpController,
-              appContext: context,
-              length: 6,
-              textStyle: light().copyWith(
-                fontSize: 20.sp,
-                color: Colors.white,
-              ),
-              onChanged: (value) {
-                if (ref.watch(otpValidationProvider) != null) {
-                  ref
-                      .read(otpValidationProvider.notifier)
-                      .update((state) => null);
-                }
-              },
-              keyboardType: TextInputType.number,
-              pinTheme: PinTheme(
-                disabledColor: Colors.amber,
-                inactiveFillColor: Colors.amber,
-                activeColor: Colors.blue,
-                inactiveColor: Colors.white,
-                selectedColor: Colors.white,
-              ),
-            ),
-            if (ref.watch(otpValidationProvider) != null) ...{
-              sizedBox(8),
-              Text(
-                "${ref.watch(otpValidationProvider)}",
-                style: light().copyWith(
-                  fontSize: 16.sp,
-                  color: Colors.red,
-                ),
-              ),
-            },
+        appBar: AppBar(
+          backgroundColor: AppColors.primary,
+          elevation: 0,
+          iconTheme: const IconThemeData(
+            color: AppColors.yellowColor,
+          ),
+          actions: [
+            TextButton(
+                autofocus: true,
+                onPressed: () async {
+                  if (otpController.text.isNotEmpty) {
+                    await ref
+                        .read(otpProvider.notifier)
+                        .verifyOTP(widget.verificationId, otpController.text);
+                  } else {
+                    ref
+                        .read(otpValidationProvider.notifier)
+                        .update((state) => "Please enter your OTP");
+                  }
+                },
+                child: Text(
+                  "Done",
+                  style: bold().copyWith(
+                    fontSize: 20.sp,
+                    color: AppColors.yellowColor,
+                  ),
+                ))
           ],
         ),
-      ),
-    );
+        body: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: screenMargin,
+            vertical: screenMargin,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Enter OTP Code",
+                style: bold().copyWith(
+                  fontSize: 26.sp,
+                  color: AppColors.textColor,
+                ),
+              ),
+              sizedBox(12),
+              PinCodeTextField(
+                controller: otpController,
+                appContext: context,
+                length: 6,
+                textStyle: light().copyWith(
+                  fontSize: 20.sp,
+                  color: Colors.white,
+                ),
+                onChanged: (value) {
+                  if (ref.watch(otpValidationProvider) != null) {
+                    ref
+                        .read(otpValidationProvider.notifier)
+                        .update((state) => null);
+                  }
+                },
+                keyboardType: TextInputType.number,
+                pinTheme: PinTheme(
+                  disabledColor: Colors.amber,
+                  inactiveFillColor: Colors.amber,
+                  activeColor: Colors.blue,
+                  inactiveColor: Colors.white,
+                  selectedColor: Colors.white,
+                ),
+              ),
+              if (ref.watch(otpValidationProvider) != null) ...{
+                sizedBox(8),
+                Text(
+                  "${ref.watch(otpValidationProvider)}",
+                  style: light().copyWith(
+                    fontSize: 16.sp,
+                    color: Colors.red,
+                  ),
+                ),
+              },
+            ],
+          ),
+        ),
+      );
+    });
   }
 }

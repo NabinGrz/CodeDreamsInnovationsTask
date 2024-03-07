@@ -65,7 +65,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Enter Phone Number ${ref.watch(verifyPhoneNumberProvider)}",
+                        "Enter Phone Number",
                         style: bold().copyWith(
                           fontSize: 26.sp,
                           color: AppColors.textColor,
