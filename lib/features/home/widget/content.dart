@@ -1,3 +1,4 @@
+import 'package:core_dreams_innovations/features/home/presentation/provider/select_place_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -10,6 +11,7 @@ import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/sizebox.dart';
 import '../presentation/provider/location_provider.dart';
 import '../presentation/provider/place_provider.dart';
+import '../presentation/provider/search_place_provider.dart';
 import 'place_item_widget.dart';
 
 class ContenWidget extends ConsumerStatefulWidget {
@@ -27,6 +29,10 @@ class ContenWidget extends ConsumerStatefulWidget {
 class _ContenWidgetState extends ConsumerState<ContenWidget> {
   GoogleMapAPINotifier get googleApiNotifier =>
       ref.read(googleApiProvider.notifier);
+  SearchPlaceNotifier get searchPlaceNotifier =>
+      ref.read(searchPlaceProvider.notifier);
+  SelectPlaceNotifier get selectPlaceNotifier =>
+      ref.read(selectPlaceProvider.notifier);
   Timer? _debounce;
   @override
   void dispose() {
@@ -71,7 +77,7 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                                 }
                                 _debounce = Timer(
                                     const Duration(milliseconds: 300),
-                                    () async => await googleApiNotifier
+                                    () async => await searchPlaceNotifier
                                         .searchPlace(pattern, ref));
                               },
                             )
@@ -118,23 +124,30 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                   ),
                 ),
           if (ref.watch(isExpanded)) ...{
-            ListView.separated(
-              separatorBuilder: (context, index) {
-                return const Divider(
-                  color: AppColors.textGreyColor,
-                  height: 6,
-                );
-              },
-              shrinkWrap: true,
-              itemCount: ref.watch(placesProvider).length,
-              itemBuilder: (context, index) {
-                final place = ref.watch(placesProvider)[index];
-                return InkWell(
-                  onTap: () async {
-                    widget.destinationController.text = place.description ?? "";
-                    await googleApiNotifier.onSelectPlace(place, ref);
+            Consumer(
+              builder: (context, ref, child) {
+                return ListView.separated(
+                  separatorBuilder: (context, index) {
+                    return const Divider(
+                      color: AppColors.textGreyColor,
+                      height: 6,
+                    );
                   },
-                  child: PlaceItemWidget(place: place),
+                  shrinkWrap: true,
+                  itemCount: ref.watch(searchPlaceProvider).length,
+                  // ref.watch(placesProvider).length,
+                  itemBuilder: (context, index) {
+                    final place = ref.watch(searchPlaceProvider)[index];
+                    // ref.watch(placesProvider)[index];
+                    return InkWell(
+                      onTap: () async {
+                        widget.destinationController.text =
+                            place.description ?? "";
+                        await selectPlaceNotifier.onSelectPlace(place, ref);
+                      },
+                      child: PlaceItemWidget(place: place),
+                    );
+                  },
                 );
               },
             )

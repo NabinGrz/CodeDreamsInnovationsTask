@@ -2,8 +2,10 @@ import 'package:core_dreams_innovations/core/constants/app_colors.dart';
 import 'package:core_dreams_innovations/core/constants/app_styles.dart';
 import 'package:core_dreams_innovations/core/constants/text_styles.dart';
 import 'package:core_dreams_innovations/features/home/domain/entities/place_latlng_model.dart';
+import 'package:core_dreams_innovations/features/home/presentation/provider/latlng_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/location_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/place_provider.dart';
+import 'package:core_dreams_innovations/features/home/presentation/provider/select_place_provider.dart';
 import 'package:core_dreams_innovations/features/home/widget/content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,6 +13,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../widget/header.dart';
+import 'provider/search_place_provider.dart';
 
 class Home extends ConsumerStatefulWidget {
   const Home({super.key});
@@ -24,10 +27,13 @@ class _HomeState extends ConsumerState<Home> {
   final dragController = DraggableScrollableController();
   final startController = TextEditingController();
   final destinationController = TextEditingController();
-  PlaceLatLngModel? get destinationModel => ref.watch(destinationProvider);
+  PlaceLatLngModel? get destinationModel => ref.watch(selectPlaceProvider);
   Polyline? get routePolyLines => ref.watch(routesProvider);
   GoogleMapAPINotifier get googleApiNotifier =>
       ref.read(googleApiProvider.notifier);
+  LatLngNotifier get latlngNotifier => ref.read(latlngProvider.notifier);
+  SearchPlaceNotifier get searchPlaceNotifier =>
+      ref.read(searchPlaceProvider.notifier);
 
   void listenToLocationProvider() {
     ref.listen(locationProvider.select((value) => value),
@@ -45,8 +51,9 @@ class _HomeState extends ConsumerState<Home> {
           ),
         );
 
-        final address = await googleApiNotifier.latlngToPlace(
+        await latlngNotifier.latlngToPlace(
             "${next.position!.latitude},${next.position!.longitude}");
+        final address = ref.watch(latlngProvider);
         startController.text = address?.formatted_address ?? "";
       }
     });
@@ -157,9 +164,7 @@ class _HomeState extends ConsumerState<Home> {
                                     ),
                                     curve: Curves.easeInOut);
                                 destinationController.clear();
-                                ref
-                                    .read(placesProvider.notifier)
-                                    .update((state) => []);
+                                searchPlaceNotifier.clearSuggestions();
                               },
                               onDone: () async {
                                 ref
@@ -174,9 +179,7 @@ class _HomeState extends ConsumerState<Home> {
                                     ),
                                     curve: Curves.easeInOut);
                                 destinationController.clear();
-                                ref
-                                    .read(placesProvider.notifier)
-                                    .update((state) => []);
+                                searchPlaceNotifier.clearSuggestions();
 
                                 final start = LatLng(
                                     locationState.position!.latitude,
