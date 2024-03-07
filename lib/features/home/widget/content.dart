@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'dart:async';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
@@ -26,6 +27,13 @@ class ContenWidget extends ConsumerStatefulWidget {
 class _ContenWidgetState extends ConsumerState<ContenWidget> {
   GoogleMapAPINotifier get googleApiNotifier =>
       ref.read(googleApiProvider.notifier);
+  Timer? _debounce;
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(
     BuildContext context,
@@ -91,21 +99,36 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                                 border: InputBorder.none,
                               ),
                               onChanged: (pattern) async {
-                                var predictionModel = await googleApiNotifier
-                                    .placeAutoComplete(placeInput: pattern);
-
-                                if (predictionModel != null) {
-                                  final places = predictionModel.predictions!
-                                      .where((element) => element.description!
-                                          .toLowerCase()
-                                          .contains(pattern.toLowerCase()))
-                                      .toList();
-                                  ref
-                                      .read(placesProvider.notifier)
-                                      .update((state) => places);
-                                } else {
-                                  // return [];
+                                if (_debounce?.isActive ?? false) {
+                                  _debounce?.cancel();
                                 }
+                                _debounce =
+                                    Timer(const Duration(milliseconds: 300),
+                                        () async {
+                                  if (pattern.length >= 3) {
+                                    var predictionModel =
+                                        await googleApiNotifier
+                                            .placeAutoComplete(
+                                                placeInput: pattern);
+
+                                    if (predictionModel != null) {
+                                      final places = predictionModel
+                                          .predictions!
+                                          .where((element) => element
+                                              .description!
+                                              .toLowerCase()
+                                              .contains(pattern.toLowerCase()))
+                                          .toList();
+                                      ref
+                                          .read(placesProvider.notifier)
+                                          .update((state) => places);
+                                    }
+                                  } else {
+                                    ref
+                                        .read(placesProvider.notifier)
+                                        .update((state) => []);
+                                  }
+                                });
                               },
                             ),
                           ],
