@@ -19,7 +19,7 @@ class Home extends ConsumerStatefulWidget {
 }
 
 class _HomeState extends ConsumerState<Home> {
-  late final GoogleMapController mapController;
+  GoogleMapController? mapController;
   final dragController = DraggableScrollableController();
   final startController = TextEditingController();
   final destinationController = TextEditingController();
@@ -29,7 +29,7 @@ class _HomeState extends ConsumerState<Home> {
     ref.listen(locationProvider.select((value) => value),
         (previous, next) async {
       if (next.position != null) {
-        mapController.animateCamera(
+        mapController?.animateCamera(
           CameraUpdate.newCameraPosition(
             CameraPosition(
               zoom: 16,
@@ -158,33 +158,35 @@ class _HomeState extends ConsumerState<Home> {
                                           .read(placesProvider.notifier)
                                           .update((state) => []);
 
-                                      final routePoliyline =
-                                          await googleApiNotifier
-                                              .getRouteBetweenTwoPoints(
-                                                  start:
-                                                      LatLng(
-                                                          locationState
-                                                              .position!
-                                                              .latitude,
-                                                          locationState
-                                                              .position!
-                                                              .longitude),
-                                                  end: ref.watch(
-                                                      destinationProvider)!,
-                                                  color: Colors.red);
-
-                                      ref
-                                          .read(
-                                              routePolyPointsProvider.notifier)
-                                          .update((state) => routePoliyline);
-                                      final start = LatLng(
-                                          locationState.position!.latitude,
-                                          locationState.position!.longitude);
-                                      final end =
-                                          ref.watch(destinationProvider)!;
+                                      // final routePoliyline =
                                       await googleApiNotifier
-                                          .updateCameraLocationToZoomBetweenTwoMarkers(
-                                              start, end, mapController);
+                                          .getRouteBetweenTwoPoints(
+                                              start: LatLng(
+                                                  locationState
+                                                      .position!.latitude,
+                                                  locationState
+                                                      .position!.longitude),
+                                              end: ref
+                                                  .watch(destinationProvider)!,
+                                              color: AppColors.yellowColor)
+                                          .then((value) async {
+                                        final start = LatLng(
+                                            locationState.position!.latitude,
+                                            locationState.position!.longitude);
+                                        final end =
+                                            ref.watch(destinationProvider)!;
+                                        // await mapController?.animateCamera(
+                                        //     CameraUpdate.newCameraPosition(
+                                        //         CameraPosition(
+                                        //             target: end, zoom: 20)));
+                                        ref
+                                            .read(routePolyPointsProvider
+                                                .notifier)
+                                            .update((state) => value);
+                                        await googleApiNotifier
+                                            .updateCameraLocationToZoomBetweenTwoMarkers(
+                                                start, end, mapController!);
+                                      });
                                     },
                                   )
                                 : SliverPadding(

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:core_dreams_innovations/core/constants/app_colors.dart';
 import 'package:core_dreams_innovations/core/constants/app_string.dart';
 import 'package:core_dreams_innovations/features/home/data/models/location_model.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,8 @@ final routePolyPointsProvider = StateProvider<List<PointLatLng>>((ref) => []);
 final routesProvider = StateProvider<Polyline>((ref) {
   final polyline = Polyline(
       polylineId: const PolylineId("Routes"),
+      color: AppColors.yellowColor,
+      width: 6,
       points: ref
           .watch(routePolyPointsProvider)
           .map((e) => LatLng(e.latitude, e.longitude))
