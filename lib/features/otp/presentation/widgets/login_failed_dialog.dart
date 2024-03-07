@@ -3,10 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/constants/text_styles.dart';
 
-class LoginFailedDialog extends StatelessWidget {
+class CustomDialog extends StatelessWidget {
   final String message;
   final void Function()? onPressed;
-  const LoginFailedDialog({super.key, required this.message, this.onPressed});
+  const CustomDialog({super.key, required this.message, this.onPressed});
 
   @override
   Widget build(BuildContext context) {

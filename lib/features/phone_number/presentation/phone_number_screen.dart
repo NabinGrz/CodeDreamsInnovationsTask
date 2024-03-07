@@ -89,7 +89,7 @@ class _PhoneNumberScreenState extends ConsumerState<PhoneNumberScreen> {
                             sizedBox(18),
                             Flexible(
                               child: TextFormField(
-                                autofocus: true,
+                                autofocus: false,
                                 maxLength: 10,
                                 controller: mobileNumberController,
                                 onChanged: (value) {

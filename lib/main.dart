@@ -1,7 +1,7 @@
 import 'package:core_dreams_innovations/features/home/presentation/home.dart';
-import 'package:core_dreams_innovations/features/phone_number/presentation/phone_number_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -14,6 +14,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await Injector.setUpLocator();
+  await dotenv.load(fileName: ".env");
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -34,6 +35,6 @@ class MyApp extends StatelessWidget {
             theme: ThemeData(useMaterial3: false),
           );
         },
-        child: const PhoneNumberScreen());
+        child: const Home());
   }
 }

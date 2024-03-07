@@ -67,11 +67,7 @@ class _HomeState extends ConsumerState<Home> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       extendBody: true,
-      body:
-          // locationState.isLoading
-          //     ? const Center(child: CircularProgressIndicator.adaptive())
-          //     :
-          Stack(
+      body: Stack(
         children: [
           GoogleMap(
             style: ref.watch(mapStyleProvider).value,

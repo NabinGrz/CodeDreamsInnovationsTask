@@ -27,7 +27,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
       if (next.type == AuthStateType.failure) {
         showDialog(
           context: context,
-          builder: (context) => LoginFailedDialog(
+          builder: (context) => CustomDialog(
             message: next.failedAppStateResponse ?? "",
             onPressed: () {
               Navigator.pop(context);

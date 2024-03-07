@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../core/helper/firebase_auth_helper.dart';
 import '../../otp/presentation/otp_screen.dart';
+import '../../otp/presentation/widgets/login_failed_dialog.dart';
 
 final numberValidationProvider = StateProvider<String?>((ref) => null);
 final idProvider = StateProvider<String?>((ref) => null);
@@ -23,22 +24,47 @@ class PhoneNumberNotifier extends StateNotifier<bool> {
     state = true;
     await auth.verifyPhoneNumber(
       phoneNumber: number,
-      codeSent: (verificationId, forceResendingToken) {
-        ref.read(idProvider.notifier).update((state) => verificationId);
+      verificationCompleted: (phoneAuthCredential) async {
+        await auth.firebaseAuth.signInWithCredential(phoneAuthCredential);
+        state = false;
       },
-    );
-    await Future.delayed(const Duration(seconds: 3)).then((_) async {
-      if (ref.watch(idProvider) != null) {
+      verificationFailed: (error) {
+        state = false;
+        showDialog(
+          context: context,
+          builder: (context) => CustomDialog(
+            message: error.message ?? "Something went wrong",
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        );
+        FocusScope.of(context).unfocus();
+      },
+      codeSent: (verificationId, forceResendingToken) async {
         await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => OTPScreen(
-              ref.watch(idProvider)!,
+              verificationId,
             ),
           ),
         );
         state = false;
-      }
-    });
+      },
+      codeAutoRetrievalTimeout: (verificationId) {},
+      onException: (message) {
+        state = false;
+        showDialog(
+          context: context,
+          builder: (context) => CustomDialog(
+            message: message ?? "Something went wrong",
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        );
+      },
+    );
   }
 }

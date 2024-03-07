@@ -24,9 +24,8 @@ class UpdateCameraUseCase {
       CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 120);
       await mapController.animateCamera(cameraUpdate);
     } catch (e) {
-      // Handle exception
       debugPrint(e.toString());
-      rethrow; // Rethrow the exception for higher-level handling
+      rethrow;
     }
   }
 }
