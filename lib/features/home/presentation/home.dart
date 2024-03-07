@@ -1,10 +1,12 @@
 import 'package:core_dreams_innovations/core/constants/app_colors.dart';
 import 'package:core_dreams_innovations/core/constants/app_styles.dart';
 import 'package:core_dreams_innovations/core/constants/text_styles.dart';
+import 'package:core_dreams_innovations/features/home/domain/entities/place_latlng_model.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/location_provider.dart';
 import 'package:core_dreams_innovations/features/home/presentation/provider/place_provider.dart';
 import 'package:core_dreams_innovations/features/home/widget/content.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -23,6 +25,8 @@ class _HomeState extends ConsumerState<Home> {
   final dragController = DraggableScrollableController();
   final startController = TextEditingController();
   final destinationController = TextEditingController();
+  PlaceLatLngModel? get destinationModel => ref.watch(destinationProvider);
+  Polyline? get routePolyLines => ref.watch(routesProvider);
   GoogleMapAPINotifier get googleApiNotifier =>
       ref.read(googleApiProvider.notifier);
   void listenToLocationProvider() async {
@@ -55,163 +59,169 @@ class _HomeState extends ConsumerState<Home> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       extendBody: true,
-      body: locationState.isLoading
-          ? const Center(child: CircularProgressIndicator.adaptive())
-          : Stack(
-              children: [
-                GoogleMap(
-                  style: ref.watch(mapStyleProvider).value,
-                  myLocationButtonEnabled: false,
-                  myLocationEnabled: false,
-                  zoomControlsEnabled: false,
-                  polylines: {ref.watch(routesProvider)},
-                  markers: {
-                    if (ref.watch(destinationProvider) != null) ...{
-                      Marker(
-                          markerId: const MarkerId("1"),
-                          position: ref.watch(destinationProvider)!)
-                    },
-                    if (locationState.position != null) ...{
-                      Marker(
-                          markerId: const MarkerId("2"),
-                          position: LatLng(locationState.position!.latitude,
-                              locationState.position!.longitude))
-                    }
-                  },
-                  initialCameraPosition: CameraPosition(
-                    zoom: 16,
-                    target: locationState.position != null
-                        ? LatLng(locationState.position!.latitude,
-                            locationState.position!.longitude)
-                        : const LatLng(0.0, 0.0),
-                  ),
-                  onMapCreated: (controller) async {
-                    mapController = controller;
-                    await ref
-                        .read(locationProvider.notifier)
-                        .checkLocationPermission(context);
-                  },
-                ),
-                NotificationListener<DraggableScrollableNotification>(
-                  onNotification:
-                      (DraggableScrollableNotification dSNotification) {
-                    ref
-                        .read(isExpanded.notifier)
-                        .update((state) => dSNotification.extent > 0.9);
-
-                    return dSNotification.extent > 0.9;
-                  },
-                  child: DraggableScrollableSheet(
-                    initialChildSize: 0.3,
-                    maxChildSize: 1,
-                    minChildSize: 0.3,
-                    expand: true,
-                    snap: true,
-                    controller: dragController,
-                    builder: (BuildContext context,
-                        ScrollController scrollController) {
-                      return DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: ref.watch(isExpanded)
-                              ? null
-                              : BorderRadius.only(
-                                  topLeft: Radius.circular(25.r),
-                                  topRight: Radius.circular(25.r),
-                                ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.white.withOpacity(0.43),
-                              spreadRadius: 6,
-                              blurRadius: 20,
-                            )
-                          ],
-                        ),
-                        child: CustomScrollView(
-                          physics: const BouncingScrollPhysics(
-                              parent: AlwaysScrollableScrollPhysics()),
-                          controller: scrollController,
-                          shrinkWrap: true,
-                          slivers: [
-                            (ref.watch(isExpanded))
-                                ? Header(
-                                    dragController: dragController,
-                                    onCancel: () {
-                                      dragController.animateTo(0.3,
-                                          duration: const Duration(
-                                            milliseconds: 300,
-                                          ),
-                                          curve: Curves.easeInOut);
-                                      destinationController.clear();
-                                      ref
-                                          .read(placesProvider.notifier)
-                                          .update((state) => []);
-                                    },
-                                    onDone: () async {
-                                      dragController.animateTo(0.3,
-                                          duration: const Duration(
-                                            milliseconds: 300,
-                                          ),
-                                          curve: Curves.easeInOut);
-                                      destinationController.clear();
-                                      ref
-                                          .read(placesProvider.notifier)
-                                          .update((state) => []);
-
-                                      // final routePoliyline =
-                                      await googleApiNotifier
-                                          .getRouteBetweenTwoPoints(
-                                              start: LatLng(
-                                                  locationState
-                                                      .position!.latitude,
-                                                  locationState
-                                                      .position!.longitude),
-                                              end: ref
-                                                  .watch(destinationProvider)!,
-                                              color: AppColors.yellowColor)
-                                          .then((value) async {
-                                        final start = LatLng(
-                                            locationState.position!.latitude,
-                                            locationState.position!.longitude);
-                                        final end =
-                                            ref.watch(destinationProvider)!;
-                                        // await mapController?.animateCamera(
-                                        //     CameraUpdate.newCameraPosition(
-                                        //         CameraPosition(
-                                        //             target: end, zoom: 20)));
-                                        ref
-                                            .read(routePolyPointsProvider
-                                                .notifier)
-                                            .update((state) => value);
-                                        await googleApiNotifier
-                                            .updateCameraLocationToZoomBetweenTwoMarkers(
-                                                start, end, mapController!);
-                                      });
-                                    },
-                                  )
-                                : SliverPadding(
-                                    padding: EdgeInsets.all(screenMargin),
-                                    sliver: SliverToBoxAdapter(
-                                      child: Text(
-                                        'At your service Mr Walker',
-                                        style: bold().copyWith(
-                                          fontSize: 20.sp,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                            SliverPadding(padding: EdgeInsets.all(6.h)),
-                            ContenWidget(dragController, startController,
-                                destinationController),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                )
-              ],
+      body:
+          // locationState.isLoading
+          //     ? const Center(child: CircularProgressIndicator.adaptive())
+          //     :
+          Stack(
+        children: [
+          GoogleMap(
+            style: ref.watch(mapStyleProvider).value,
+            myLocationButtonEnabled: false,
+            myLocationEnabled: false,
+            zoomControlsEnabled: false,
+            polylines: {
+              if (routePolyLines != null) ...{routePolyLines!}
+            },
+            markers: {
+              if (destinationModel?.latLng != null) ...{
+                Marker(
+                    icon: ref.watch(destinationIconProvider).valueOrNull ??
+                        BitmapDescriptor.defaultMarker,
+                    markerId: const MarkerId("1"),
+                    infoWindow: InfoWindow(
+                        title: destinationModel?.description.description ?? ""),
+                    position: destinationModel!.latLng)
+              },
+              if (locationState.position != null) ...{
+                Marker(
+                    icon: ref.watch(startIconProvider).valueOrNull ??
+                        BitmapDescriptor.defaultMarker,
+                    markerId: const MarkerId("2"),
+                    infoWindow: InfoWindow(title: startController.text),
+                    position: LatLng(locationState.position!.latitude,
+                        locationState.position!.longitude))
+              }
+            },
+            initialCameraPosition: CameraPosition(
+              zoom: 16,
+              target: locationState.position != null
+                  ? LatLng(locationState.position!.latitude,
+                      locationState.position!.longitude)
+                  : const LatLng(0.0, 0.0),
             ),
+            onMapCreated: (controller) async {
+              mapController = controller;
+              await ref
+                  .read(locationProvider.notifier)
+                  .checkLocationPermission(context);
+            },
+          ),
+          NotificationListener<DraggableScrollableNotification>(
+            onNotification: (DraggableScrollableNotification dSNotification) {
+              ref
+                  .read(isExpanded.notifier)
+                  .update((state) => dSNotification.extent > 0.9);
+
+              return dSNotification.extent > 0.9;
+            },
+            child: DraggableScrollableSheet(
+              initialChildSize: 0.3,
+              maxChildSize: 1,
+              minChildSize: 0.3,
+              expand: true,
+              snap: true,
+              controller: dragController,
+              builder:
+                  (BuildContext context, ScrollController scrollController) {
+                return DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: ref.watch(isExpanded)
+                        ? null
+                        : BorderRadius.only(
+                            topLeft: Radius.circular(25.r),
+                            topRight: Radius.circular(25.r),
+                          ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.43),
+                        spreadRadius: 6,
+                        blurRadius: 20,
+                      )
+                    ],
+                  ),
+                  child: CustomScrollView(
+                    physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics()),
+                    controller: scrollController,
+                    shrinkWrap: true,
+                    slivers: [
+                      (ref.watch(isExpanded))
+                          ? Header(
+                              dragController: dragController,
+                              onCancel: () {
+                                dragController.animateTo(0.3,
+                                    duration: const Duration(
+                                      milliseconds: 300,
+                                    ),
+                                    curve: Curves.easeInOut);
+                                destinationController.clear();
+                                ref
+                                    .read(placesProvider.notifier)
+                                    .update((state) => []);
+                              },
+                              onDone: () async {
+                                ref
+                                    .read(routePolyPointsProvider.notifier)
+                                    .update((state) => []);
+                                ref
+                                    .read(routesProvider.notifier)
+                                    .update((state) => null);
+                                dragController.animateTo(0.3,
+                                    duration: const Duration(
+                                      milliseconds: 300,
+                                    ),
+                                    curve: Curves.easeInOut);
+                                destinationController.clear();
+                                ref
+                                    .read(placesProvider.notifier)
+                                    .update((state) => []);
+
+                                final start = LatLng(
+                                    locationState.position!.latitude,
+                                    locationState.position!.longitude);
+                                final end = destinationModel?.latLng;
+                                if (end != null) {
+                                  await googleApiNotifier
+                                      .getRouteBetweenTwoPoints(
+                                          start: start,
+                                          end: end,
+                                          color: AppColors.yellowColor)
+                                      .then((value) async {
+                                    ref
+                                        .read(routePolyPointsProvider.notifier)
+                                        .update((state) => value);
+                                    await googleApiNotifier
+                                        .updateCameraLocationToZoomBetweenTwoMarkers(
+                                            start, end, mapController!);
+                                  });
+                                }
+                              },
+                            )
+                          : SliverPadding(
+                              padding: EdgeInsets.all(screenMargin),
+                              sliver: SliverToBoxAdapter(
+                                child: Text(
+                                  'At your service Mr Walker',
+                                  style: bold().copyWith(
+                                    fontSize: 20.sp,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                      SliverPadding(padding: EdgeInsets.all(6.h)),
+                      ContenWidget(dragController, startController,
+                          destinationController),
+                    ],
+                  ),
+                );
+              },
+            ),
+          )
+        ],
+      ),
     );
   }
 }

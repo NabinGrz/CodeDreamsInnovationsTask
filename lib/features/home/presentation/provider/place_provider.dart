@@ -11,16 +11,39 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../../data/models/place_model.dart';
 import 'package:collection/collection.dart';
+import 'dart:ui' as ui;
+
+import '../../domain/entities/place_latlng_model.dart';
 
 final mapStyleProvider = FutureProvider((ref) async {
   final style = await rootBundle.loadString('assets/json/map_style.json');
   return style;
 });
+final startIconProvider = FutureProvider((ref) async {
+  return BitmapDescriptor.fromBytes(
+      await getBytesFromAsset(path: "assets/images/start.png", width: 140));
+});
+final destinationIconProvider = FutureProvider((ref) async {
+  return BitmapDescriptor.fromBytes(await getBytesFromAsset(
+      path: "assets/images/destination.png", width: 140));
+});
+
+Future<Uint8List> getBytesFromAsset(
+    {required String path, required int width}) async {
+  ByteData data = await rootBundle.load(path);
+  ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
+      targetWidth: width);
+  ui.FrameInfo fi = await codec.getNextFrame();
+  return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!
+      .buffer
+      .asUint8List();
+}
+
 final placesProvider = StateProvider<List<Description>>((ref) => []);
-final destinationProvider = StateProvider<LatLng?>((ref) => null);
-final startProvider = StateProvider<LatLng?>((ref) => null);
+final destinationProvider = StateProvider<PlaceLatLngModel?>((ref) => null);
+final startProvider = StateProvider<PlaceLatLngModel?>((ref) => null);
 final routePolyPointsProvider = StateProvider<List<PointLatLng>>((ref) => []);
-final routesProvider = StateProvider<Polyline>((ref) {
+final routesProvider = StateProvider<Polyline?>((ref) {
   final polyline = Polyline(
       polylineId: const PolylineId("Routes"),
       color: AppColors.yellowColor,

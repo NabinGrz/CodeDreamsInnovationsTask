@@ -1,3 +1,4 @@
+import 'package:core_dreams_innovations/features/home/domain/entities/place_latlng_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -72,6 +73,7 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                               height: 1,
                             ),
                             TextFormField(
+                              autofocus: true,
                               controller: widget.destinationController,
                               style: regular().copyWith(
                                 fontSize: 20.sp,
@@ -162,16 +164,16 @@ class _ContenWidgetState extends ConsumerState<ContenWidget> {
                 final place = ref.watch(placesProvider)[index];
                 return InkWell(
                   onTap: () async {
+                    widget.destinationController.text = place.description ?? "";
                     final data = await googleApiNotifier
                         .placeToLatLng(place.place_id ?? "");
                     final latlng = LatLng(
                       data?.geometry?.location?.lat ?? 0,
                       data?.geometry?.location?.lng ?? 0,
                     );
-                    ref
-                        .read(destinationProvider.notifier)
-                        .update((state) => latlng);
-                    widget.destinationController.text = place.description ?? "";
+                    ref.read(destinationProvider.notifier).update((state) =>
+                        PlaceLatLngModel(description: place, latLng: latlng));
+
                     ref.read(placesProvider.notifier).update((state) => []);
                   },
                   child: Container(
