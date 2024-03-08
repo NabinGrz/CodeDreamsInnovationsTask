@@ -22,6 +22,11 @@ This is a Flutter app built using Clean Architecture and Flutter for state manag
 - [build_runner](https://pub.dev/packages/build_runner): ^2.4.8
 - [json_serializable](https://pub.dev/packages/json_serializable): ^6.7.1
 
+## $${\color{red}CREDENTAILS}$$
+IF YOUR PHONE NUMBER IS BLOCKED SOMEHOW, USE BELOW ONES
+- Number: 9800000000
+- OTP: 000000
+
 ## Flutter & Dart SDK Version
 
 - Flutter SDK: 3.19.0
